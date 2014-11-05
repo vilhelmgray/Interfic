@@ -23,6 +23,8 @@
 
 #include "libinterfic.h"
 
+static unsigned createNewFic(const char *const fLoc);
+
 int main(void){
         unsigned choice = 0;
         do{
@@ -44,20 +46,34 @@ int main(void){
         }
         fLoc[offset] = '\0';
 
-        FILE *fp;
         switch(choice){
                 case 1:
-                        fp = fopen(fLoc, "rb");
                         break;
                 case 2:
-                        fp = fopen(fLoc, "w+b");
+                        if(createNewFic(fLoc)){
+                                return 1;
+                        }
                         break;
         }
+
+        return 0;
+}
+
+static unsigned createNewFic(const char *const fLoc){
+        FILE *fp = fopen(fLoc, "w+b");
         if(!fp){
                 fprintf(stderr, "Unable to open %s!\n", fLoc);
                 return 1;
         }
 
+        if(writeFicHeader(fp)){
+                goto exit_header;
+        }
+
         fclose(fp);
         return 0;
+
+exit_header:
+        fclose(fp);
+        return 1;
 }
