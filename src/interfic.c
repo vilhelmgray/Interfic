@@ -24,7 +24,7 @@
 #include "libinterfic.h"
 
 static unsigned createNewFic(const char *const fLoc);
-static unsigned selectPage(unsigned long free_page, unsigned *total_pages);
+static unsigned selectPage(struct free_page *lowest_free_page, unsigned long *last_page);
 
 int main(void){
         unsigned choice = 0;
@@ -61,7 +61,7 @@ int main(void){
 }
 
 static unsigned createNewFic(const char *const fLoc){
-        FILE *fp = fopen(fLoc, "w+b");
+        FILE *const fp = fopen(fLoc, "w+b");
         if(!fp){
                 fprintf(stderr, "Unable to open %s!\n", fLoc);
                 return 1;
@@ -71,27 +71,43 @@ static unsigned createNewFic(const char *const fLoc){
                 goto exit_header_write;
         }
 
-        unsigned total_pages = 0;
-        if(selectPage(0, &total_pages)){
+        struct free_page *free_pages;
+        unsigned long last_page;
+        if(discoverFreePages(&free_pages, &last_page, fp)){
+                goto exit_free_pages_discovery;
+        }
+
+        if(selectPage(free_pages, &last_page)){
                 goto exit_page_selection;
         }
+
+        forgetFreePages(free_pages);
 
         fclose(fp);
         return 0;
 
 exit_page_selection:
+        forgetFreePages(free_pages);
+exit_free_pages_discovery:
 exit_header_write:
         fclose(fp);
         return 1;
 }
 
-static unsigned selectPage(unsigned long free_page, unsigned *total_pages){
+static unsigned selectPage(struct free_page *lowest_free_page, unsigned long *last_page){
+        if(lowest_free_page){
+                printf("Page %lu is free.\n", lowest_free_page->page_num);
+        }else{
+                printf("There are no pages free\n");
+        }
+
         unsigned long page_num = 0;
         do{
-                printf("Enter page number (0 - %lu) to create (page %lu is free): ", MAX_PAGE_NUMBER, free_page);
+                printf("Enter page number (0 - %lu) to create: ", MAX_PAGE_NUMBER);
                 char buffer[32];
                 fgets(buffer, sizeof(buffer), stdin);
                 page_num = strtoul(buffer, NULL, 0);
         }while(page_num > MAX_PAGE_NUMBER);
+
         return 0;
 }

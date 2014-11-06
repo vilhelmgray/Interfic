@@ -17,6 +17,7 @@
  * <http://www.gnu.org/licenses/>.
  */
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "libinterfic.h"
 
@@ -31,6 +32,64 @@ static const unsigned char VERSION = 0;
 #define PAGE_SIZE       (TEXT_SIZE + 4*(CHOICE_SIZE + PAGE_NUM_SIZE))
 #define MAX_FIC_SIZE    (MAX_OFFSET + PAGE_SIZE - HEADER_SIZE)
 const unsigned long MAX_PAGE_NUMBER = MAX_FIC_SIZE/PAGE_SIZE - 1;
+
+extern unsigned discoverFreePages(struct free_page **const free_pages, unsigned long *const last_page, FILE *const fp){
+        if(fseek(fp, HEADER_SIZE, SEEK_SET)){
+                struct free_page *tmp_page = calloc(1, sizeof(*tmp_page));
+                if(!tmp_page){
+                        fprintf(stderr, "Unable to allocate memory for free pages list\n");
+                        return 1;
+                }
+                *free_pages = tmp_page;
+                *last_page = 0;
+                return 0;
+        }
+
+        unsigned isEOF = 0;
+        unsigned long page_num = 0;
+        struct free_page **next_free_page = free_pages;
+        do{
+                char page_data[PAGE_SIZE] = {0};
+                fread(page_data, sizeof(page_data), 1, fp);
+                if(feof(fp)){
+                        page_data[0] = '\0';
+                        isEOF = 1;
+                }else if(ferror(fp)){
+                        fprintf(stderr, "Error trying to read page %lu\n", page_num);
+                        return 1;
+                }
+
+                if(!page_data[0]){
+                        struct free_page *tmp_page = malloc(sizeof(*tmp_page));
+                        if(!tmp_page){
+                                fprintf(stderr, "Unable to allocate memory for free pages list\n");
+                                goto exit_page_malloc;
+                        }
+                        tmp_page->page_num = page_num;
+                        tmp_page->next = NULL;
+
+                        *next_free_page = tmp_page;
+                        next_free_page = &(tmp_page->next);
+                }
+
+                page_num++;
+        }while(!isEOF && page_num <= MAX_PAGE_NUMBER);
+
+        *last_page = page_num - 1;
+        return 0;
+
+exit_page_malloc:
+        forgetFreePages(*free_pages);
+        return 1;
+}
+
+extern void forgetFreePages(struct free_page *free_pages){
+        while(free_pages){
+                struct free_page *next = free_pages->next;
+                free(free_pages);
+                free_pages = next;
+        }
+}
 
 extern unsigned writeFicHeader(FILE *fp){
         if(!fwrite(MAGIC, sizeof(MAGIC), 1, fp)){
