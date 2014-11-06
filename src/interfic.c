@@ -24,7 +24,7 @@
 #include "libinterfic.h"
 
 static unsigned createNewFic(const char *const fLoc);
-static unsigned selectPage(struct free_page *lowest_free_page, unsigned long *total_pages);
+static unsigned createPage(struct free_page *free_pages, unsigned long *total_pages);
 
 int main(void){
         unsigned choice = 0;
@@ -77,7 +77,7 @@ static unsigned createNewFic(const char *const fLoc){
                 goto exit_free_pages_discovery;
         }
 
-        if(selectPage(free_pages, &total_pages)){
+        if(createPage(free_pages, &total_pages)){
                 goto exit_page_selection;
         }
 
@@ -94,9 +94,9 @@ exit_header_write:
         return 1;
 }
 
-static unsigned selectPage(struct free_page *lowest_free_page, unsigned long *total_pages){
-        if(lowest_free_page){
-                printf("Page %lu is free.\n", lowest_free_page->page_num);
+static unsigned createPage(struct free_page *free_pages, unsigned long *total_pages){
+        if(free_pages){
+                printf("Page %lu is free.\n", free_pages->page_num);
         }else{
                 printf("There are no pages free.\n");
         }
