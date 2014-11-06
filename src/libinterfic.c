@@ -33,7 +33,7 @@ static const unsigned char VERSION = 0;
 #define MAX_FIC_SIZE    (MAX_OFFSET + PAGE_SIZE - HEADER_SIZE)
 const unsigned long MAX_PAGE_NUMBER = MAX_FIC_SIZE/PAGE_SIZE - 1;
 
-extern unsigned discoverFreePages(struct free_page **const free_pages, unsigned long *const last_page, FILE *const fp){
+extern unsigned discoverFreePages(struct free_page **const free_pages, unsigned long *const total_pages, FILE *const fp){
         if(fseek(fp, HEADER_SIZE, SEEK_SET)){
                 struct free_page *tmp_page = calloc(1, sizeof(*tmp_page));
                 if(!tmp_page){
@@ -41,7 +41,7 @@ extern unsigned discoverFreePages(struct free_page **const free_pages, unsigned 
                         return 1;
                 }
                 *free_pages = tmp_page;
-                *last_page = 0;
+                *total_pages = 0;
                 return 0;
         }
 
@@ -75,7 +75,7 @@ extern unsigned discoverFreePages(struct free_page **const free_pages, unsigned 
                 page_num++;
         }while(!isEOF && page_num <= MAX_PAGE_NUMBER);
 
-        *last_page = page_num - 1;
+        *total_pages = (isEOF) ? page_num - 1 : page_num;
         return 0;
 
 exit_page_malloc:

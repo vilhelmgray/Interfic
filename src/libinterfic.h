@@ -28,7 +28,7 @@ struct free_page{
 
 extern const unsigned long MAX_PAGE_NUMBER;
 
-extern unsigned discoverFreePages(struct free_page **const free_pages, unsigned long *const last_page, FILE *const fp);
+extern unsigned discoverFreePages(struct free_page **const free_pages, unsigned long *const total_pages, FILE *const fp);
 extern void forgetFreePages(struct free_page *free_pages);
 extern unsigned writeFicHeader(FILE *fp);
 
