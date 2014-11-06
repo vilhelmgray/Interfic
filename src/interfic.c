@@ -119,7 +119,7 @@ static unsigned createPage(struct free_page *free_pages, unsigned long *total_pa
 
         printf("Enter page text (maximum text length of %zu characters): ", PAGE_SIZE);
         unsigned char page_data[PAGE_SIZE] = {0};
-        fgets((char *)page_data, TEXT_SIZE+1, stdin);
+        fgets(page_data, TEXT_SIZE+1, stdin);
 
         if(insertPage(fp, page_num, page_data)){
                 return 1;
