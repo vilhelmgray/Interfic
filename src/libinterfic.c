@@ -27,10 +27,6 @@ static const unsigned char VERSION = 0;
 
 #define MAX_OFFSET      ((1UL<<31) - 1)
 #define HEADER_SIZE     (sizeof(MAGIC) + sizeof(VERSION))
-#define TEXT_SIZE       1024
-#define CHOICE_SIZE     256
-#define PAGE_NUM_SIZE   3
-#define PAGE_SIZE       (TEXT_SIZE + 4*(CHOICE_SIZE + PAGE_NUM_SIZE))
 #define MAX_FIC_SIZE    (MAX_OFFSET + PAGE_SIZE - HEADER_SIZE)
 const unsigned long MAX_PAGE_NUMBER = MAX_FIC_SIZE/PAGE_SIZE - 1;
 
@@ -123,6 +119,20 @@ extern void forgetFreePages(struct free_page *free_pages){
                 free(free_pages);
                 free_pages = next;
         }
+}
+
+extern unsigned insertPage(FILE *const fp, const unsigned long PAGE_NUM, const unsigned char *const PAGE_DATA){
+        if(fseek(fp, HEADER_SIZE + PAGE_NUM*PAGE_SIZE, SEEK_SET)){
+                fprintf(stderr, "Error seeking to page %lu.\n", PAGE_NUM);
+                return 1;
+        }
+
+        if(!fwrite(PAGE_DATA, PAGE_SIZE, 1, fp)){
+                fprintf(stderr, "Error writing page %lu.\n", PAGE_NUM);
+                return 1;
+        }
+
+        return 0;
 }
 
 extern unsigned writeFicHeader(FILE *fp){

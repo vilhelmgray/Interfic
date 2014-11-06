@@ -117,5 +117,13 @@ static unsigned createPage(struct free_page *free_pages, unsigned long *total_pa
                 *total_pages += NUM_PAD_PAGES;
         }
 
+        printf("Enter page text (maximum text length of %zu characters): ", PAGE_SIZE);
+        unsigned char page_data[PAGE_SIZE] = {0};
+        fgets((char *)page_data, TEXT_SIZE+1, stdin);
+
+        if(insertPage(fp, page_num, page_data)){
+                return 1;
+        }
+
         return 0;
 }
