@@ -28,6 +28,7 @@ struct free_page{
 
 extern const unsigned long MAX_PAGE_NUMBER;
 
+extern unsigned addPaddingPages(FILE *const fp, struct free_page *free_pages, const unsigned long TOTAL_PAGES, const unsigned long NUM_PAD_PAGES);
 extern unsigned discoverFreePages(struct free_page **const free_pages, unsigned long *const total_pages, FILE *const fp);
 extern void forgetFreePages(struct free_page *free_pages);
 extern unsigned writeFicHeader(FILE *fp);

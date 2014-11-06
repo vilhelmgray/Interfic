@@ -24,7 +24,7 @@
 #include "libinterfic.h"
 
 static unsigned createNewFic(const char *const fLoc);
-static unsigned createPage(struct free_page *free_pages, unsigned long *total_pages);
+static unsigned createPage(struct free_page *free_pages, unsigned long *total_pages, FILE *const fp);
 
 int main(void){
         unsigned choice = 0;
@@ -77,7 +77,7 @@ static unsigned createNewFic(const char *const fLoc){
                 goto exit_free_pages_discovery;
         }
 
-        if(createPage(free_pages, &total_pages)){
+        if(createPage(free_pages, &total_pages, fp)){
                 goto exit_page_selection;
         }
 
@@ -94,7 +94,7 @@ exit_header_write:
         return 1;
 }
 
-static unsigned createPage(struct free_page *free_pages, unsigned long *total_pages){
+static unsigned createPage(struct free_page *free_pages, unsigned long *total_pages, FILE *const fp){
         if(free_pages){
                 printf("Page %lu is free.\n", free_pages->page_num);
         }else{
@@ -108,6 +108,14 @@ static unsigned createPage(struct free_page *free_pages, unsigned long *total_pa
                 fgets(buffer, sizeof(buffer), stdin);
                 page_num = strtoul(buffer, NULL, 0);
         }while(page_num > MAX_PAGE_NUMBER);
+
+        if(page_num > *total_pages){
+                const unsigned long NUM_PAD_PAGES = page_num - *total_pages;
+                if(addPaddingPages(fp, free_pages, *total_pages, NUM_PAD_PAGES)){
+                        return 1;
+                }
+                *total_pages += NUM_PAD_PAGES;
+        }
 
         return 0;
 }

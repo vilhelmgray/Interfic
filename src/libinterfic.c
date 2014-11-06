@@ -33,6 +33,45 @@ static const unsigned char VERSION = 0;
 #define MAX_FIC_SIZE    (MAX_OFFSET + PAGE_SIZE - HEADER_SIZE)
 const unsigned long MAX_PAGE_NUMBER = MAX_FIC_SIZE/PAGE_SIZE - 1;
 
+extern unsigned addPaddingPages(FILE *const fp, struct free_page *free_pages, const unsigned long TOTAL_PAGES, const unsigned long NUM_PAD_PAGES){
+        if(fseek(fp, HEADER_SIZE + TOTAL_PAGES*PAGE_SIZE, SEEK_SET)){
+                fprintf(stderr, "Error seeking to end of file\n");
+                return 1;
+        }
+
+        struct free_page **free_pages_end = &free_pages;
+        while(*free_pages_end){
+                free_pages_end = &((*free_pages_end)->next);
+        }
+        struct free_page *const PAD_PAGES_BEGIN = *free_pages_end;
+
+        for(unsigned long i = TOTAL_PAGES; i < TOTAL_PAGES + NUM_PAD_PAGES; i++){
+                const unsigned char PAD_PAGE[PAGE_SIZE] = {'\0'};
+                if(!fwrite(PAD_PAGE, sizeof(PAD_PAGE), 1, fp)){
+                        fprintf(stderr, "Error writing padding pages\n");
+                        goto err_pad_page_write;
+                }
+
+                struct free_page *tmp_page = malloc(sizeof(*tmp_page));
+                if(!tmp_page){
+                        fprintf(stderr, "Unable to allocate memory for free pages list\n");
+                        goto err_free_page_malloc;
+                }
+                tmp_page->page_num = i;
+                tmp_page->next = NULL;
+
+                *free_pages_end = tmp_page;
+                free_pages_end = &(tmp_page->next);
+        }
+
+        return 0;
+
+err_free_page_malloc:
+err_pad_page_write:
+        forgetFreePages(PAD_PAGES_BEGIN);
+        return 1;
+}
+
 extern unsigned discoverFreePages(struct free_page **const free_pages, unsigned long *const total_pages, FILE *const fp){
         if(fseek(fp, HEADER_SIZE, SEEK_SET)){
                 fprintf(stderr, "Error seeking to page 0\n");
@@ -57,7 +96,7 @@ extern unsigned discoverFreePages(struct free_page **const free_pages, unsigned 
                         struct free_page *tmp_page = malloc(sizeof(*tmp_page));
                         if(!tmp_page){
                                 fprintf(stderr, "Unable to allocate memory for free pages list\n");
-                                goto exit_page_malloc;
+                                goto err_free_page_malloc;
                         }
                         tmp_page->page_num = page_num;
                         tmp_page->next = NULL;
@@ -72,7 +111,7 @@ extern unsigned discoverFreePages(struct free_page **const free_pages, unsigned 
         *total_pages = (isEOF) ? page_num - 1 : page_num;
         return 0;
 
-exit_page_malloc:
+err_free_page_malloc:
         forgetFreePages(*free_pages);
         return 1;
 }
