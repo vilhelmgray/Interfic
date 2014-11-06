@@ -95,8 +95,8 @@ exit_header_write:
 }
 
 static unsigned createPage(struct free_page *free_pages, unsigned long *total_pages, FILE *const fp){
-        if(free_pages){
-                printf("Page %lu is free.\n", free_pages->page_num);
+        if(*total_pages <= MAX_PAGE_NUMBER){
+                printf("Page %lu is free.\n", (free_pages) ? free_pages->page_num : *total_pages);
         }else{
                 printf("There are no pages free.\n");
         }
