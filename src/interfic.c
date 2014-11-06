@@ -98,7 +98,7 @@ static unsigned selectPage(struct free_page *lowest_free_page, unsigned long *to
         if(lowest_free_page){
                 printf("Page %lu is free.\n", lowest_free_page->page_num);
         }else{
-                printf("There are no pages free\n");
+                printf("There are no pages free.\n");
         }
 
         unsigned long page_num = 0;
