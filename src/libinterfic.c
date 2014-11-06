@@ -96,10 +96,5 @@ extern unsigned writeFicHeader(FILE *fp){
                 return 1;
         }
 
-        if(fflush(fp)){
-                fprintf(stderr, "Error flushing Interfic header to file\n");
-                return 1;
-        }
-
         return 0;
 }
