@@ -35,14 +35,8 @@ const unsigned long MAX_PAGE_NUMBER = MAX_FIC_SIZE/PAGE_SIZE - 1;
 
 extern unsigned discoverFreePages(struct free_page **const free_pages, unsigned long *const total_pages, FILE *const fp){
         if(fseek(fp, HEADER_SIZE, SEEK_SET)){
-                struct free_page *tmp_page = calloc(1, sizeof(*tmp_page));
-                if(!tmp_page){
-                        fprintf(stderr, "Unable to allocate memory for free pages list\n");
-                        return 1;
-                }
-                *free_pages = tmp_page;
-                *total_pages = 0;
-                return 0;
+                fprintf(stderr, "Error seeking to page 0\n");
+                return 1;
         }
 
         unsigned isEOF = 0;
