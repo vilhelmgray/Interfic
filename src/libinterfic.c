@@ -28,7 +28,7 @@ static const unsigned char VERSION = 0;
 #define HEADER_SIZE     (sizeof(MAGIC) + sizeof(VERSION))
 #define TEXT_SIZE       1024
 #define CHOICE_SIZE     256
-#define PAGE_NUM_SIZE   2
+#define PAGE_NUM_SIZE   3
 #define PAGE_SIZE       (TEXT_SIZE + 4*(CHOICE_SIZE + PAGE_NUM_SIZE))
 #define MAX_FIC_SIZE    (MAX_OFFSET + PAGE_SIZE - HEADER_SIZE)
 const unsigned long MAX_PAGE_NUMBER = MAX_FIC_SIZE/PAGE_SIZE - 1;
