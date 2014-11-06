@@ -43,7 +43,7 @@ extern unsigned discoverFreePages(struct free_page **const free_pages, unsigned 
         unsigned long page_num = 0;
         struct free_page **next_free_page = free_pages;
         do{
-                char page_data[PAGE_SIZE] = {0};
+                char page_data[PAGE_SIZE];
                 fread(page_data, sizeof(page_data), 1, fp);
                 if(feof(fp)){
                         page_data[0] = '\0';
