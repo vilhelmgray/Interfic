@@ -24,6 +24,7 @@
 #include "libinterfic.h"
 
 static unsigned createNewFic(const char *const fLoc);
+static unsigned selectPage(unsigned free_page, unsigned *total_pages);
 
 int main(void){
         unsigned choice = 0;
@@ -67,13 +68,30 @@ static unsigned createNewFic(const char *const fLoc){
         }
 
         if(writeFicHeader(fp)){
-                goto exit_header;
+                goto exit_header_write;
+        }
+
+        unsigned total_pages = 0;
+        if(selectPage(0, &total_pages)){
+                goto exit_page_selection;
         }
 
         fclose(fp);
         return 0;
 
-exit_header:
+exit_page_selection:
+exit_header_write:
         fclose(fp);
         return 1;
+}
+
+static unsigned selectPage(unsigned free_page, unsigned *total_pages){
+        unsigned long page_num = 0;
+        do{
+                printf("Enter page number (0 - %lu) to create (page %u is free): ", MAX_PAGE_NUMBER, free_page);
+                char buffer[32];
+                fgets(buffer, sizeof(buffer), stdin);
+                page_num = strtoul(buffer, NULL, 0);
+        }while(page_num > MAX_PAGE_NUMBER);
+        return 0;
 }

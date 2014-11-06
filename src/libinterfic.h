@@ -21,6 +21,8 @@
 
 #include <stdio.h>
 
+extern const unsigned long MAX_PAGE_NUMBER;
+
 extern unsigned writeFicHeader(FILE *fp);
 
 #endif

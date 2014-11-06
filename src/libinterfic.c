@@ -23,6 +23,15 @@
 static const unsigned char MAGIC[] = { 0x49, 0x4E, 0x54, 0x45, 0x52, 0x46, 0x49, 0x43 };
 static const unsigned char VERSION = 0;
 
+#define MAX_OFFSET      ((1UL<<31) - 1)
+#define HEADER_SIZE     (sizeof(MAGIC) + sizeof(VERSION))
+#define TEXT_SIZE       1024
+#define CHOICE_SIZE     256
+#define PAGE_NUM_SIZE   2
+#define PAGE_SIZE       (TEXT_SIZE + 4*(CHOICE_SIZE + PAGE_NUM_SIZE))
+#define MAX_FIC_SIZE    (MAX_OFFSET + PAGE_SIZE - HEADER_SIZE)
+const unsigned long MAX_PAGE_NUMBER = MAX_FIC_SIZE/PAGE_SIZE - 1;
+
 extern unsigned writeFicHeader(FILE *fp){
         if(!fwrite(MAGIC, sizeof(MAGIC), 1, fp)){
                 fprintf(stderr, "Unable to write magic number\n");
