@@ -16,6 +16,7 @@
  * License along with Interfic.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 
