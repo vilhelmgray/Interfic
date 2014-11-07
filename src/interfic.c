@@ -121,7 +121,7 @@ static unsigned createPage(struct free_page *free_pages, unsigned long *total_pa
         unsigned char page_data[PAGE_SIZE] = {0};
         fgets(page_data, TEXT_SIZE+1, stdin);
 
-        if(insertPage(fp, page_num, page_data)){
+        if(insertPage(fp, page_num, page_data, &free_pages)){
                 return 1;
         }
 

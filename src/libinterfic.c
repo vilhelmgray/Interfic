@@ -30,6 +30,8 @@ static const unsigned char VERSION = 0;
 #define MAX_FIC_SIZE    (MAX_OFFSET + PAGE_SIZE - HEADER_SIZE)
 const unsigned long MAX_PAGE_NUMBER = MAX_FIC_SIZE/PAGE_SIZE - 1;
 
+static void removeFreePage(const unsigned long PAGE_NUM, struct free_page **head);
+
 extern unsigned addPaddingPages(FILE *const fp, struct free_page *free_pages, const unsigned long TOTAL_PAGES, const unsigned long NUM_PAD_PAGES){
         if(fseek(fp, HEADER_SIZE + TOTAL_PAGES*PAGE_SIZE, SEEK_SET)){
                 fprintf(stderr, "Error seeking to end of file.\n");
@@ -121,7 +123,7 @@ extern void forgetFreePages(struct free_page *free_pages){
         }
 }
 
-extern unsigned insertPage(FILE *const fp, const unsigned long PAGE_NUM, const unsigned char *const PAGE_DATA){
+extern unsigned insertPage(FILE *const fp, const unsigned long PAGE_NUM, const unsigned char *const PAGE_DATA, struct free_page **const free_pages){
         if(fseek(fp, HEADER_SIZE + PAGE_NUM*PAGE_SIZE, SEEK_SET)){
                 fprintf(stderr, "Error seeking to page %lu.\n", PAGE_NUM);
                 return 1;
@@ -131,6 +133,8 @@ extern unsigned insertPage(FILE *const fp, const unsigned long PAGE_NUM, const u
                 fprintf(stderr, "Error writing page %lu.\n", PAGE_NUM);
                 return 1;
         }
+
+        removeFreePage(PAGE_NUM, free_pages);
 
         return 0;
 }
@@ -147,4 +151,19 @@ extern unsigned writeFicHeader(FILE *fp){
         }
 
         return 0;
+}
+
+static void removeFreePage(const unsigned long PAGE_NUM, struct free_page **head){
+        struct free_page *cur_page = *head;
+        while(cur_page){
+                if(cur_page->page_num == PAGE_NUM){
+                        *head = cur_page->next;
+
+                        free(cur_page);
+                        break;
+                }
+
+                head = &(cur_page->next);
+                cur_page = *head;
+        }
 }
