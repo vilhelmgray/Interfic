@@ -124,6 +124,9 @@ static unsigned createPage(struct free_page *free_pages, unsigned long *total_pa
         if(insertPage(fp, page_num, page_data, &free_pages)){
                 return 1;
         }
+        if(page_num == *total_pages){
+                (*total_pages)++;
+        }
 
         return 0;
 }
