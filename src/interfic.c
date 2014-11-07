@@ -27,7 +27,7 @@ static unsigned createNewFic(const char *const fLoc);
 static unsigned createPage(struct free_page *free_pages, unsigned long *total_pages, FILE *const fp);
 
 int main(void){
-        unsigned choice = 0;
+        unsigned choice;
         do{
                 printf("Select an option:\n"
                        "\t1. Open existing file\n"
