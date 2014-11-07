@@ -24,7 +24,7 @@
 #include "libinterfic.h"
 
 static unsigned createNewFic(const char *const fLoc);
-static unsigned createPage(struct free_page *free_pages, unsigned long *total_pages, FILE *const fp);
+static unsigned createPage(struct free_page **free_pages, unsigned long *total_pages, FILE *const fp);
 
 int main(void){
         unsigned choice;
@@ -77,7 +77,7 @@ static unsigned createNewFic(const char *const fLoc){
                 goto exit_free_pages_discovery;
         }
 
-        if(createPage(free_pages, &total_pages, fp)){
+        if(createPage(&free_pages, &total_pages, fp)){
                 goto exit_page_selection;
         }
 
@@ -94,7 +94,7 @@ exit_header_write:
         return 1;
 }
 
-static unsigned createPage(struct free_page *free_pages, unsigned long *total_pages, FILE *const fp){
+static unsigned createPage(struct free_page **free_pages, unsigned long *total_pages, FILE *const fp){
         unsigned choice;
         do{
                 printf("Select an option:\n"
@@ -110,7 +110,7 @@ static unsigned createPage(struct free_page *free_pages, unsigned long *total_pa
         switch(choice){
                 case 1:
                         if(*total_pages <= MAX_PAGE_NUMBER){
-                                page_num = (free_pages) ? free_pages->page_num : *total_pages;
+                                page_num = (*free_pages) ? (*free_pages)->page_num : *total_pages;
                         }else{
                                 printf("There are no pages free.\n");
                                 page_num = MAX_PAGE_NUMBER;
@@ -156,13 +156,13 @@ static unsigned createPage(struct free_page *free_pages, unsigned long *total_pa
 
         if(page_num > *total_pages){
                 const unsigned long NUM_PAD_PAGES = page_num - *total_pages;
-                if(addPaddingPages(fp, free_pages, *total_pages, NUM_PAD_PAGES)){
+                if(addPaddingPages(fp, *free_pages, *total_pages, NUM_PAD_PAGES)){
                         return 1;
                 }
                 *total_pages += NUM_PAD_PAGES;
         }
 
-        if(insertPage(fp, page_num, page_data, &free_pages)){
+        if(insertPage(fp, page_num, page_data, free_pages)){
                 return 1;
         }
         if(page_num == *total_pages){
