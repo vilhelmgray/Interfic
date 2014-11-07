@@ -153,6 +153,12 @@ extern unsigned writeFicHeader(FILE *fp){
         return 0;
 }
 
+extern void writePageNumber(unsigned char *fic_page_num, const unsigned long PAGE_NUM){
+        for(size_t i = 0; i < PAGE_NUM_SIZE; i++){
+                fic_page_num[i] = (PAGE_NUM>>(i*8)) & 0xFF;
+        }
+}
+
 static void removeFreePage(const unsigned long PAGE_NUM, struct free_page **head){
         struct free_page *cur_page = *head;
         while(cur_page){

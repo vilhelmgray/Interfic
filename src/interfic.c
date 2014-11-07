@@ -131,6 +131,29 @@ static unsigned createPage(struct free_page *free_pages, unsigned long *total_pa
         unsigned char page_data[PAGE_SIZE] = {0};
         fgets(page_data, TEXT_SIZE+1, stdin);
 
+        unsigned num_choices;
+        do{
+                printf("Enter the number of choices (0 - %u): ", MAX_NUM_CHOICES);
+                char buffer[32];
+                fgets(buffer, sizeof(buffer), stdin);
+                num_choices = strtoul(buffer, NULL, 0);
+        }while(num_choices > MAX_NUM_CHOICES);
+
+        for(unsigned i = 0; i < num_choices; i++){
+                printf("Enter Choice %u text (maximum text length of %zu characters): ", i, CHOICE_SIZE);
+                const size_t CHOICE_OFFSET = TEXT_SIZE + i*(CHOICE_SIZE+PAGE_NUM_SIZE);
+                fgets(page_data + CHOICE_OFFSET, CHOICE_SIZE+1, stdin);
+
+                unsigned long choice_page_num;
+                do{
+                        printf("Enter Choice %u page number (0 - %lu): ", i, MAX_PAGE_NUMBER);
+                        char buffer[32];
+                        fgets(buffer, sizeof(buffer), stdin);
+                        choice_page_num = strtoul(buffer, NULL, 0);
+                }while(choice_page_num > MAX_PAGE_NUMBER);
+                writePageNumber(page_data + CHOICE_OFFSET + CHOICE_SIZE, choice_page_num);
+        }
+
         if(page_num > *total_pages){
                 const unsigned long NUM_PAD_PAGES = page_num - *total_pages;
                 if(addPaddingPages(fp, free_pages, *total_pages, NUM_PAD_PAGES)){

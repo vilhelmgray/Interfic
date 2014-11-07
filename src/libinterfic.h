@@ -27,9 +27,10 @@ struct free_page{
 };
 
 #define TEXT_SIZE       1024UL
+#define MAX_NUM_CHOICES 4U
 #define CHOICE_SIZE     256UL
 #define PAGE_NUM_SIZE   3UL
-#define PAGE_SIZE       (TEXT_SIZE + 4*(CHOICE_SIZE + PAGE_NUM_SIZE))
+#define PAGE_SIZE       (TEXT_SIZE + MAX_NUM_CHOICES*(CHOICE_SIZE + PAGE_NUM_SIZE))
 extern const unsigned long MAX_PAGE_NUMBER;
 
 extern unsigned addPaddingPages(FILE *const fp, struct free_page *free_pages, const unsigned long TOTAL_PAGES, const unsigned long NUM_PAD_PAGES);
@@ -37,5 +38,6 @@ extern unsigned discoverFreePages(struct free_page **const free_pages, unsigned 
 extern void forgetFreePages(struct free_page *free_pages);
 extern unsigned insertPage(FILE *const fp, const unsigned long PAGE_NUM, const unsigned char *const PAGE_DATA, struct free_page **const free_pages);
 extern unsigned writeFicHeader(FILE *fp);
+extern void writePageNumber(unsigned char *fic_page_num, const unsigned long PAGE_NUM);
 
 #endif
