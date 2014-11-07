@@ -124,21 +124,20 @@ static unsigned createPage(struct free_page *free_pages, unsigned long *total_pa
                                 fgets(buffer, sizeof(buffer), stdin);
                                 page_num = strtoul(buffer, NULL, 0);
                         }while(page_num > MAX_PAGE_NUMBER);
-
-                        if(page_num > *total_pages){
-                                const unsigned long NUM_PAD_PAGES = page_num - *total_pages;
-                                if(addPaddingPages(fp, free_pages, *total_pages, NUM_PAD_PAGES)){
-                                        return 1;
-                                }
-                                *total_pages += NUM_PAD_PAGES;
-                        }
-
                         break;
         }
 
         printf("Enter page text (maximum text length of %zu characters): ", PAGE_SIZE);
         unsigned char page_data[PAGE_SIZE] = {0};
         fgets(page_data, TEXT_SIZE+1, stdin);
+
+        if(page_num > *total_pages){
+                const unsigned long NUM_PAD_PAGES = page_num - *total_pages;
+                if(addPaddingPages(fp, free_pages, *total_pages, NUM_PAD_PAGES)){
+                        return 1;
+                }
+                *total_pages += NUM_PAD_PAGES;
+        }
 
         if(insertPage(fp, page_num, page_data, &free_pages)){
                 return 1;
