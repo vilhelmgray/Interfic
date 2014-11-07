@@ -95,26 +95,45 @@ exit_header_write:
 }
 
 static unsigned createPage(struct free_page *free_pages, unsigned long *total_pages, FILE *const fp){
-        if(*total_pages <= MAX_PAGE_NUMBER){
-                printf("Page %lu is free.\n", (free_pages) ? free_pages->page_num : *total_pages);
-        }else{
-                printf("There are no pages free.\n");
-        }
-
-        unsigned long page_num = 0;
+        unsigned choice;
         do{
-                printf("Enter page number (0 - %lu) to create: ", MAX_PAGE_NUMBER);
+                printf("Select an option:\n"
+                       "\t1. Use a known free page\n"
+                       "\t2. Enter a specific page number\n"
+                       "> ");
                 char buffer[32];
                 fgets(buffer, sizeof(buffer), stdin);
-                page_num = strtoul(buffer, NULL, 0);
-        }while(page_num > MAX_PAGE_NUMBER);
+                choice = strtoul(buffer, NULL, 0);
+        }while(!choice || choice > 2);
 
-        if(page_num > *total_pages){
-                const unsigned long NUM_PAD_PAGES = page_num - *total_pages;
-                if(addPaddingPages(fp, free_pages, *total_pages, NUM_PAD_PAGES)){
-                        return 1;
-                }
-                *total_pages += NUM_PAD_PAGES;
+        unsigned long page_num;
+        switch(choice){
+                case 1:
+                        if(*total_pages <= MAX_PAGE_NUMBER){
+                                page_num = (free_pages) ? free_pages->page_num : *total_pages;
+                        }else{
+                                printf("There are no pages free.\n");
+                                page_num = MAX_PAGE_NUMBER;
+                        }
+                        printf("Page %lu selected.\n", page_num);
+                        break;
+                case 2:
+                        do{
+                                printf("Enter page number (0 - %lu): ", MAX_PAGE_NUMBER);
+                                char buffer[32];
+                                fgets(buffer, sizeof(buffer), stdin);
+                                page_num = strtoul(buffer, NULL, 0);
+                        }while(page_num > MAX_PAGE_NUMBER);
+
+                        if(page_num > *total_pages){
+                                const unsigned long NUM_PAD_PAGES = page_num - *total_pages;
+                                if(addPaddingPages(fp, free_pages, *total_pages, NUM_PAD_PAGES)){
+                                        return 1;
+                                }
+                                *total_pages += NUM_PAD_PAGES;
+                        }
+
+                        break;
         }
 
         printf("Enter page text (maximum text length of %zu characters): ", PAGE_SIZE);
