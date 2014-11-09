@@ -124,6 +124,30 @@ extern void forgetFreePages(struct free_page *free_pages){
         }
 }
 
+extern unsigned insertFreePage(struct free_page **head_page, const unsigned long PAGE_NUM){
+        struct free_page *new_free_page = malloc(sizeof(*new_free_page));
+        if(!new_free_page){
+                fprintf(stderr, "Unable to allocate memory for free pages list.\n");
+                return 1;
+        }
+        new_free_page->page_num = PAGE_NUM;
+        new_free_page->next = NULL;
+
+        while(*head_page){
+                struct free_page *cur_page = *head_page;
+                if(cur_page->page_num > PAGE_NUM){
+                        new_free_page->next = cur_page;
+                        break;
+                }
+
+                head_page = &(cur_page->next);
+        }
+
+        *head_page = new_free_page;
+
+        return 0;
+}
+
 extern unsigned insertPage(FILE *const fp, const unsigned long PAGE_NUM, const uint8_t *const PAGE_DATA, struct free_page **const free_pages){
         if(fseek(fp, HEADER_SIZE + PAGE_NUM*PAGE_SIZE, SEEK_SET)){
                 fprintf(stderr, "Error seeking to page %lu.\n", PAGE_NUM);

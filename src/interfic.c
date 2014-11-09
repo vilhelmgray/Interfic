@@ -111,8 +111,8 @@ static unsigned createPage(struct free_page **free_pages, unsigned long *total_p
         unsigned long page_num;
         switch(choice){
                 case 1:
-                        if(*total_pages <= MAX_PAGE_NUMBER){
-                                page_num = (*free_pages) ? (*free_pages)->page_num : *total_pages;
+                        if(*free_pages){
+                                page_num = (*free_pages)->page_num;
                         }else{
                                 printf("There are no pages free.\n");
                                 page_num = MAX_PAGE_NUMBER;
@@ -172,6 +172,12 @@ static unsigned createPage(struct free_page **free_pages, unsigned long *total_p
         }
         if(page_num == *total_pages){
                 (*total_pages)++;
+
+                if(*total_pages <= MAX_PAGE_NUMBER){
+                        if(insertFreePage(free_pages, *total_pages)){
+                                return 1;
+                        }
+                }
         }
 
         return 0;
