@@ -18,12 +18,13 @@
  */
 #include <stddef.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 #include "libinterfic.h"
 
-static const unsigned char MAGIC[] = { 0x49, 0x4E, 0x54, 0x45, 0x52, 0x46, 0x49, 0x43 };
-static const unsigned char VERSION = 0;
+static const uint8_t MAGIC[] = { 0x49, 0x4E, 0x54, 0x45, 0x52, 0x46, 0x49, 0x43 };
+static const uint8_t VERSION = 0;
 
 #define MAX_OFFSET      ((1UL<<31) - 1)
 #define HEADER_SIZE     (sizeof(MAGIC) + sizeof(VERSION))
@@ -123,7 +124,7 @@ extern void forgetFreePages(struct free_page *free_pages){
         }
 }
 
-extern unsigned insertPage(FILE *const fp, const unsigned long PAGE_NUM, const unsigned char *const PAGE_DATA, struct free_page **const free_pages){
+extern unsigned insertPage(FILE *const fp, const unsigned long PAGE_NUM, const uint8_t *const PAGE_DATA, struct free_page **const free_pages){
         if(fseek(fp, HEADER_SIZE + PAGE_NUM*PAGE_SIZE, SEEK_SET)){
                 fprintf(stderr, "Error seeking to page %lu.\n", PAGE_NUM);
                 return 1;
@@ -153,9 +154,9 @@ extern unsigned writeFicHeader(FILE *fp){
         return 0;
 }
 
-extern void writePageNumber(unsigned char *fic_page_num, const unsigned long PAGE_NUM){
+extern void writePageNumber(uint8_t *fic_page_num, const unsigned long PAGE_NUM){
         for(size_t i = 0; i < PAGE_NUM_SIZE; i++){
-                fic_page_num[i] = (PAGE_NUM>>(i*8)) & 0xFF;
+                fic_page_num[i] = PAGE_NUM >> (i*8);
         }
 }
 

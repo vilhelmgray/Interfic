@@ -19,7 +19,9 @@
 #include <ctype.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "libinterfic.h"
 
@@ -128,8 +130,11 @@ static unsigned createPage(struct free_page **free_pages, unsigned long *total_p
         }
 
         printf("Enter page text (maximum text length of %zu characters): ", PAGE_SIZE);
-        unsigned char page_data[PAGE_SIZE] = {0};
-        fgets(page_data, TEXT_SIZE+1, stdin);
+        char page_text[TEXT_SIZE+1] = "";
+        fgets(page_text, sizeof(page_text), stdin);
+
+        uint8_t page_data[PAGE_SIZE] = {0};
+        memcpy(page_data, page_text, TEXT_SIZE);
 
         unsigned num_choices;
         do{
