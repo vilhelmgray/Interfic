@@ -50,16 +50,10 @@ extern unsigned addPaddingPages(FILE *const fp, struct free_page *free_pages, un
                         goto err_pad_page_write;
                 }
 
-                struct free_page *tmp_page = malloc(sizeof(*tmp_page));
-                if(!tmp_page){
-                        fprintf(stderr, "Unable to allocate memory for free pages list.\n");
+                if(insertFreePage(free_pages_end, i)){
                         goto err_free_page_malloc;
                 }
-                tmp_page->page_num = i;
-                tmp_page->next = NULL;
-
-                *free_pages_end = tmp_page;
-                free_pages_end = &(tmp_page->next);
+                free_pages_end = &((*free_pages_end)->next);
         }
 
         *total_pages += NUM_PAD_PAGES;
