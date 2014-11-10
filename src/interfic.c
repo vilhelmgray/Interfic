@@ -117,9 +117,8 @@ static unsigned createNewFic(const char *const fLoc){
                                 char choice_text[CHOICE_SIZE+1];
                                 fgets(choice_text, sizeof(choice_text), stdin);
 
-                                selected_page.choice[num_choices].page_num = selectPageNumber(free_pages);
-
                                 memcpy(selected_page.choice[num_choices].text, choice_text, CHOICE_SIZE);
+                                selected_page.choice[num_choices].page_num = selectPageNumber(free_pages);
 
                                 if(writePage(fp, page_num, &selected_page, &free_pages, &total_pages)){
                                         return 1;
