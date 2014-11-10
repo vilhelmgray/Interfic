@@ -28,18 +28,11 @@
 
 static unsigned createNewFic(const char *const fLoc);
 static unsigned createPage(FILE *const fp, const unsigned long PAGE_NUM, struct free_page **free_pages, unsigned long *total_pages);
+static unsigned performMenu(const char *const OPTIONS[], const size_t OPTIONS_SIZE);
 
 int main(void){
-        unsigned choice;
-        do{
-                printf("Select an option:\n"
-                       "\t1. Open existing file\n"
-                       "\t2. Create new file\n"
-                       "> ");
-                char buffer[32];
-                fgets(buffer, sizeof(buffer), stdin);
-                choice = strtoul(buffer, NULL, 0);
-        }while(!choice || choice > 2);
+        const char *const FILE_MENU[] = { "Open existing file", "Create new file" };
+        unsigned option = performMenu(FILE_MENU, sizeof(FILE_MENU)/sizeof(*FILE_MENU));
 
         printf("Enter the file location: ");
         char fLoc[256];
@@ -50,7 +43,7 @@ int main(void){
         }
         fLoc[offset] = '\0';
 
-        switch(choice){
+        switch(option){
                 case 1:
                         break;
                 case 2:
@@ -80,19 +73,11 @@ static unsigned createNewFic(const char *const fLoc){
                 goto exit_free_pages_discovery;
         }
 
-        unsigned choice;
-        do{
-                printf("Select an option:\n"
-                       "\t1. Use a known free page\n"
-                       "\t2. Enter a specific page number\n"
-                       "> ");
-                char buffer[32];
-                fgets(buffer, sizeof(buffer), stdin);
-                choice = strtoul(buffer, NULL, 0);
-        }while(!choice || choice > 2);
+        const char *const SELECT_MENU[] = { "Use a known free page", "Enter a specific page number" };
+        unsigned option = performMenu(SELECT_MENU, sizeof(SELECT_MENU)/sizeof(*SELECT_MENU));
 
         unsigned long page_num;
-        switch(choice){
+        switch(option){
                 case 1:
                         if(free_pages){
                                 page_num = free_pages->page_num;
@@ -123,17 +108,10 @@ static unsigned createNewFic(const char *const fLoc){
                 printf("Page %lu is empty.\n", page_num);
         }
 
-        do{
-                printf("Select an option:\n"
-                       "\t1. Create new page\n"
-                       "\t2. Add new choice\n"
-                       "> ");
-                char buffer[32];
-                fgets(buffer, sizeof(buffer), stdin);
-                choice = strtoul(buffer, NULL, 0);
-        }while(!choice || choice > 2);
+        const char *const EDIT_MENU[] = { "Create new page", "Add new choice" };
+        option = performMenu(EDIT_MENU, sizeof(EDIT_MENU)/sizeof(*EDIT_MENU));
 
-        switch(choice){
+        switch(option){
                 case 1:
                         if(createPage(fp, page_num, &free_pages, &total_pages)){
                                 goto exit_page_creation;
@@ -200,4 +178,20 @@ static unsigned createPage(FILE *const fp, const unsigned long PAGE_NUM, struct 
         }
 
         return 0;
+}
+
+static unsigned performMenu(const char *const OPTIONS[], const size_t OPTIONS_SIZE){
+        unsigned option;
+        do{
+                printf("Select an option:\n");
+                for(size_t i = 0; i < OPTIONS_SIZE; i++){
+                        printf("\t%zu. %s\n", i+1, OPTIONS[i]);
+                }
+                printf("> ");
+                char buffer[32];
+                fgets(buffer, sizeof(buffer), stdin);
+                option = strtoul(buffer, NULL, 0);
+        }while(!option || option > OPTIONS_SIZE);
+
+        return option;
 }
