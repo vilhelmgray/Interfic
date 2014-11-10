@@ -153,6 +153,11 @@ static unsigned createNewFic(const char *const fLoc){
                                 memmove(selected_page.choice + choice-1, selected_page.choice + choice, (num_choices-choice)*sizeof(*selected_page.choice));
                         }
                         selected_page.choice[num_choices-1].text[0] = 0;
+
+                        if(writePage(fp, page_num, &selected_page, &free_pages, &total_pages)){
+                                return 1;
+                        }
+
                         break;
                 }
         }
