@@ -109,7 +109,7 @@ static unsigned createNewFic(const char *const fLoc){
         }else{
                 printf("Page text:\n%s\n\n", selected_page.text);
                 for(size_t i = 0; i < MAX_NUM_CHOICES && selected_page.choice[i].text[0]; i++){
-                        printf("\tChoice %zu: %s (page %lu)\n", i+1, selected_page.choice[i].text, selected_page.choice[i].page_num);
+                        printf("\tChoice %zu: %s <Go to page %lu.>\n", i+1, selected_page.choice[i].text, selected_page.choice[i].page_num);
                 }
                 putchar('\n');
         }
