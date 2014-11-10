@@ -97,7 +97,7 @@ static unsigned createNewFic(const char *const fLoc){
                         break;
         }
 
-        struct fic_page selected_page = { .text = "" };
+        struct fic_page selected_page = {0};
         if(page_num < total_pages){
                 if(readPage(fp, page_num, &selected_page)){
                         goto exit_page_selection;
@@ -106,16 +106,17 @@ static unsigned createNewFic(const char *const fLoc){
 
         if(!selected_page.text[0]){
                 printf("Page %lu is empty.\n", page_num);
+                option = 1;
         }else{
                 printf("Page text:\n%s\n\n", selected_page.text);
                 for(size_t i = 0; i < MAX_NUM_CHOICES && selected_page.choice[i].text[0]; i++){
                         printf("\tChoice %zu: %s <Go to page %lu.>\n", i+1, selected_page.choice[i].text, selected_page.choice[i].page_num);
                 }
                 putchar('\n');
-        }
 
-        const char *const EDIT_MENU[] = { "Create new page", "Add new choice" };
-        option = performMenu(EDIT_MENU, sizeof(EDIT_MENU)/sizeof(*EDIT_MENU));
+                const char *const EDIT_MENU[] = { "Create new page", "Add new choice" };
+                option = performMenu(EDIT_MENU, sizeof(EDIT_MENU)/sizeof(*EDIT_MENU));
+        }
 
         switch(option){
                 case 1:
@@ -124,7 +125,26 @@ static unsigned createNewFic(const char *const fLoc){
                         }
                         break;
                 case 2:
+                {
+                        size_t num_choices = 0;
+                        while(selected_page.choice[num_choices].text[0]){
+                                num_choices++;
+                        }
+                        if(num_choices == MAX_NUM_CHOICES){
+                                printf("The is no more room on this page for another choice.\n");
+                        }else{
+                                printf("Enter Choice %zu text (maximum text length of %zu characters): ", num_choices, CHOICE_SIZE);
+                                char choice_text[CHOICE_SIZE+1];
+                                fgets(choice_text, sizeof(choice_text), stdin);
+
+                                memcpy(selected_page.choice[num_choices].text, choice_text, CHOICE_SIZE);
+
+                                if(writePage(fp, page_num, &selected_page, &free_pages, &total_pages)){
+                                        return 1;
+                                }
+                        }
                         break;
+                }
         }
 
         forgetFreePages(free_pages);
@@ -146,31 +166,8 @@ static unsigned createPage(FILE *const fp, const unsigned long PAGE_NUM, struct 
         char page_text[TEXT_SIZE+1] = "";
         fgets(page_text, sizeof(page_text), stdin);
 
-        uint8_t page_data[PAGE_SIZE] = {0};
-        memcpy(page_data, page_text, TEXT_SIZE);
-
-        unsigned num_choices;
-        do{
-                printf("Enter the number of choices (0 - %u): ", MAX_NUM_CHOICES);
-                char buffer[32];
-                fgets(buffer, sizeof(buffer), stdin);
-                num_choices = strtoul(buffer, NULL, 0);
-        }while(num_choices > MAX_NUM_CHOICES);
-
-        for(unsigned i = 0; i < num_choices; i++){
-                printf("Enter Choice %u text (maximum text length of %zu characters): ", i+1, CHOICE_SIZE);
-                const size_t CHOICE_OFFSET = TEXT_SIZE + i*(CHOICE_SIZE+PAGE_NUM_SIZE);
-                fgets(page_data + CHOICE_OFFSET, CHOICE_SIZE+1, stdin);
-
-                unsigned long choice_page_num;
-                do{
-                        printf("Enter Choice %u page number (0 - %lu): ", i+1, MAX_PAGE_NUMBER);
-                        char buffer[32];
-                        fgets(buffer, sizeof(buffer), stdin);
-                        choice_page_num = strtoul(buffer, NULL, 0);
-                }while(choice_page_num > MAX_PAGE_NUMBER);
-                writePageNumber(page_data + CHOICE_OFFSET + CHOICE_SIZE, choice_page_num);
-        }
+        struct fic_page new_page = {0};
+        memcpy(new_page.text, page_text, TEXT_SIZE);
 
         if(PAGE_NUM > *total_pages){
                 const unsigned long NUM_PAD_PAGES = PAGE_NUM - *total_pages;
@@ -179,7 +176,7 @@ static unsigned createPage(FILE *const fp, const unsigned long PAGE_NUM, struct 
                 }
         }
 
-        if(insertPage(fp, PAGE_NUM, page_data, free_pages, total_pages)){
+        if(writePage(fp, PAGE_NUM, &new_page, free_pages, total_pages)){
                 return 1;
         }
 

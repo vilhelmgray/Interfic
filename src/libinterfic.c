@@ -33,6 +33,7 @@ static const uint8_t VERSION = 0;
 const unsigned long MAX_PAGE_NUMBER = MAX_FIC_SIZE/PAGE_SIZE - 1;
 
 static unsigned long readPageNumber(const uint8_t *const FIC_PAGE_NUM);
+static void writePageNumber(uint8_t *fic_page_num, const unsigned long PAGE_NUM);
 
 extern unsigned addPaddingPages(FILE *const fp, struct free_page *free_pages, unsigned long *const total_pages, const unsigned long NUM_PAD_PAGES){
         if(fseek(fp, HEADER_SIZE + (*total_pages)*PAGE_SIZE, SEEK_SET)){
@@ -67,32 +68,6 @@ err_free_page_malloc:
 err_pad_page_write:
         forgetFreePages(PAD_PAGES_BEGIN);
         return 1;
-}
-
-extern unsigned insertPage(FILE *const fp, const unsigned long PAGE_NUM, const uint8_t *const PAGE_DATA, struct free_page **const free_pages, unsigned long *const total_pages){
-        if(fseek(fp, HEADER_SIZE + PAGE_NUM*PAGE_SIZE, SEEK_SET)){
-                fprintf(stderr, "Error seeking to page %lu.\n", PAGE_NUM);
-                return 1;
-        }
-
-        if(!fwrite(PAGE_DATA, PAGE_SIZE, 1, fp)){
-                fprintf(stderr, "Error writing page %lu.\n", PAGE_NUM);
-                return 1;
-        }
-
-        removeFreePage(PAGE_NUM, free_pages);
-
-        if(PAGE_NUM == *total_pages){
-                (*total_pages)++;
-
-                if(*total_pages <= MAX_PAGE_NUMBER){
-                        if(insertFreePage(free_pages, *total_pages)){
-                                return 1;
-                        }
-                }
-        }
-
-        return 0;
 }
 
 extern unsigned readPage(FILE *const fp, const unsigned long PAGE_NUM, struct fic_page *read_page){
@@ -132,10 +107,39 @@ extern unsigned writeFicHeader(FILE *fp){
         return 0;
 }
 
-extern void writePageNumber(uint8_t *fic_page_num, const unsigned long PAGE_NUM){
-        for(size_t i = 0; i < PAGE_NUM_SIZE; i++){
-                fic_page_num[i] = PAGE_NUM >> (i*8);
+extern unsigned writePage(FILE *const fp, const unsigned long PAGE_NUM, const struct fic_page *const NEW_PAGE, struct free_page **const free_pages, unsigned long *const total_pages){
+        if(fseek(fp, HEADER_SIZE + PAGE_NUM*PAGE_SIZE, SEEK_SET)){
+                fprintf(stderr, "Error seeking to page %lu.\n", PAGE_NUM);
+                return 1;
         }
+
+        uint8_t page_data[PAGE_SIZE] = {0};
+        memcpy(page_data, NEW_PAGE->text, TEXT_SIZE);
+        for(size_t i = 0; i < MAX_NUM_CHOICES; i++){
+                const size_t CHOICE_OFFSET = TEXT_SIZE + i*(CHOICE_SIZE + PAGE_NUM_SIZE);
+                memcpy(page_data + CHOICE_OFFSET, NEW_PAGE->choice[i].text, CHOICE_SIZE);
+
+                writePageNumber(page_data + CHOICE_OFFSET + CHOICE_SIZE, NEW_PAGE->choice[i].page_num);
+        }
+
+        if(!fwrite(page_data, PAGE_SIZE, 1, fp)){
+                fprintf(stderr, "Error writing page %lu.\n", PAGE_NUM);
+                return 1;
+        }
+
+        removeFreePage(PAGE_NUM, free_pages);
+
+        if(PAGE_NUM == *total_pages){
+                (*total_pages)++;
+
+                if(*total_pages <= MAX_PAGE_NUMBER){
+                        if(insertFreePage(free_pages, *total_pages)){
+                                return 1;
+                        }
+                }
+        }
+
+        return 0;
 }
 
 static unsigned long readPageNumber(const uint8_t *const FIC_PAGE_NUM){
@@ -145,4 +149,10 @@ static unsigned long readPageNumber(const uint8_t *const FIC_PAGE_NUM){
         }
 
         return page_num;
+}
+
+static void writePageNumber(uint8_t *fic_page_num, const unsigned long PAGE_NUM){
+        for(size_t i = 0; i < PAGE_NUM_SIZE; i++){
+                fic_page_num[i] = PAGE_NUM >> (i*8);
+        }
 }
