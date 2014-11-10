@@ -133,7 +133,7 @@ static unsigned createNewFic(const char *const fLoc){
                         if(num_choices == MAX_NUM_CHOICES){
                                 printf("The is no more room on this page for another choice.\n");
                         }else{
-                                printf("Enter Choice %zu text (maximum text length of %zu characters): ", num_choices, CHOICE_SIZE);
+                                printf("Enter Choice %zu text (maximum text length of %zu characters): ", num_choices+1, CHOICE_SIZE);
                                 char choice_text[CHOICE_SIZE+1];
                                 fgets(choice_text, sizeof(choice_text), stdin);
 
