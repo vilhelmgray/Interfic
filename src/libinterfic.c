@@ -92,6 +92,20 @@ extern unsigned insertPage(FILE *const fp, const unsigned long PAGE_NUM, const u
         return 0;
 }
 
+extern unsigned lookupPage(FILE *const fp, const unsigned long PAGE_NUM, uint8_t *const page_data){
+        if(fseek(fp, HEADER_SIZE + PAGE_NUM*PAGE_SIZE, SEEK_SET)){
+                fprintf(stderr, "Error seeking to page %lu.\n", PAGE_NUM);
+                return 1;
+        }
+
+        if(!fread(page_data, PAGE_SIZE, 1, fp)){
+                fprintf(stderr, "Error reading page %lu.\n", PAGE_NUM);
+                return 1;
+        }
+
+        return 0;
+}
+
 extern unsigned writeFicHeader(FILE *fp){
         if(!fwrite(MAGIC, sizeof(MAGIC), 1, fp)){
                 fprintf(stderr, "Unable to write magic number.\n");

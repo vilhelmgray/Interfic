@@ -27,7 +27,7 @@
 #include "libinterfic.h"
 
 static unsigned createNewFic(const char *const fLoc);
-static unsigned createPage(struct free_page **free_pages, unsigned long *total_pages, FILE *const fp);
+static unsigned createPage(FILE *const fp, const unsigned long PAGE_NUM, struct free_page **free_pages, unsigned long *total_pages);
 
 int main(void){
         unsigned choice;
@@ -80,24 +80,6 @@ static unsigned createNewFic(const char *const fLoc){
                 goto exit_free_pages_discovery;
         }
 
-        if(createPage(&free_pages, &total_pages, fp)){
-                goto exit_page_selection;
-        }
-
-        forgetFreePages(free_pages);
-
-        fclose(fp);
-        return 0;
-
-exit_page_selection:
-        forgetFreePages(free_pages);
-exit_free_pages_discovery:
-exit_header_write:
-        fclose(fp);
-        return 1;
-}
-
-static unsigned createPage(struct free_page **free_pages, unsigned long *total_pages, FILE *const fp){
         unsigned choice;
         do{
                 printf("Select an option:\n"
@@ -112,8 +94,8 @@ static unsigned createPage(struct free_page **free_pages, unsigned long *total_p
         unsigned long page_num;
         switch(choice){
                 case 1:
-                        if(*free_pages){
-                                page_num = (*free_pages)->page_num;
+                        if(free_pages){
+                                page_num = free_pages->page_num;
                         }else{
                                 printf("There are no pages free.\n");
                                 page_num = MAX_PAGE_NUMBER;
@@ -130,6 +112,52 @@ static unsigned createPage(struct free_page **free_pages, unsigned long *total_p
                         break;
         }
 
+        uint8_t page_data[PAGE_SIZE] = {0};
+        if(page_num < total_pages){
+                if(lookupPage(fp, page_num, page_data)){
+                        goto exit_page_selection;
+                }
+        }
+
+        if(!page_data[0]){
+                printf("Page %lu is empty.\n", page_num);
+        }
+
+        do{
+                printf("Select an option:\n"
+                       "\t1. Create new page\n"
+                       "\t2. Add new choice\n"
+                       "> ");
+                char buffer[32];
+                fgets(buffer, sizeof(buffer), stdin);
+                choice = strtoul(buffer, NULL, 0);
+        }while(!choice || choice > 2);
+
+        switch(choice){
+                case 1:
+                        if(createPage(fp, page_num, &free_pages, &total_pages)){
+                                goto exit_page_creation;
+                        }
+                        break;
+                case 2:
+                        break;
+        }
+
+        forgetFreePages(free_pages);
+
+        fclose(fp);
+        return 0;
+
+exit_page_creation:
+exit_page_selection:
+        forgetFreePages(free_pages);
+exit_free_pages_discovery:
+exit_header_write:
+        fclose(fp);
+        return 1;
+}
+
+static unsigned createPage(FILE *const fp, const unsigned long PAGE_NUM, struct free_page **free_pages, unsigned long *total_pages){
         printf("Enter page text (maximum text length of %zu characters): ", PAGE_SIZE);
         char page_text[TEXT_SIZE+1] = "";
         fgets(page_text, sizeof(page_text), stdin);
@@ -160,14 +188,14 @@ static unsigned createPage(struct free_page **free_pages, unsigned long *total_p
                 writePageNumber(page_data + CHOICE_OFFSET + CHOICE_SIZE, choice_page_num);
         }
 
-        if(page_num > *total_pages){
-                const unsigned long NUM_PAD_PAGES = page_num - *total_pages;
+        if(PAGE_NUM > *total_pages){
+                const unsigned long NUM_PAD_PAGES = PAGE_NUM - *total_pages;
                 if(addPaddingPages(fp, *free_pages, total_pages, NUM_PAD_PAGES)){
                         return 1;
                 }
         }
 
-        if(insertPage(fp, page_num, page_data, free_pages, total_pages)){
+        if(insertPage(fp, PAGE_NUM, page_data, free_pages, total_pages)){
                 return 1;
         }
 
