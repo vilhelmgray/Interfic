@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "free_pages.h"
 #include "libinterfic.h"
 
 static unsigned createNewFic(const char *const fLoc);

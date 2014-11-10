@@ -21,17 +21,15 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "free_pages.h"
 #include "libinterfic.h"
 
-static const uint8_t MAGIC[] = { 0x49, 0x4E, 0x54, 0x45, 0x52, 0x46, 0x49, 0x43 };
+static const uint8_t MAGIC[8] = { 0x49, 0x4E, 0x54, 0x45, 0x52, 0x46, 0x49, 0x43 };
 static const uint8_t VERSION = 0;
 
 #define MAX_OFFSET      ((1UL<<31) - 1)
-#define HEADER_SIZE     (sizeof(MAGIC) + sizeof(VERSION))
 #define MAX_FIC_SIZE    (MAX_OFFSET + PAGE_SIZE - HEADER_SIZE)
 const unsigned long MAX_PAGE_NUMBER = MAX_FIC_SIZE/PAGE_SIZE - 1;
-
-static void removeFreePage(const unsigned long PAGE_NUM, struct free_page **head);
 
 extern unsigned addPaddingPages(FILE *const fp, struct free_page *free_pages, const unsigned long TOTAL_PAGES, const unsigned long NUM_PAD_PAGES){
         if(fseek(fp, HEADER_SIZE + TOTAL_PAGES*PAGE_SIZE, SEEK_SET)){
@@ -72,82 +70,6 @@ err_pad_page_write:
         return 1;
 }
 
-extern unsigned discoverFreePages(struct free_page **const free_pages, unsigned long *const total_pages, FILE *const fp){
-        if(fseek(fp, HEADER_SIZE, SEEK_SET)){
-                fprintf(stderr, "Error seeking to page 0.\n");
-                return 1;
-        }
-
-        unsigned isEOF = 0;
-        unsigned long page_num = 0;
-        struct free_page **next_free_page = free_pages;
-        do{
-                char page_data[PAGE_SIZE];
-                fread(page_data, sizeof(page_data), 1, fp);
-                if(feof(fp)){
-                        page_data[0] = '\0';
-                        isEOF = 1;
-                }else if(ferror(fp)){
-                        fprintf(stderr, "Error trying to read page %lu.\n", page_num);
-                        return 1;
-                }
-
-                if(!page_data[0]){
-                        struct free_page *tmp_page = malloc(sizeof(*tmp_page));
-                        if(!tmp_page){
-                                fprintf(stderr, "Unable to allocate memory for free pages list.\n");
-                                goto err_free_page_malloc;
-                        }
-                        tmp_page->page_num = page_num;
-                        tmp_page->next = NULL;
-
-                        *next_free_page = tmp_page;
-                        next_free_page = &(tmp_page->next);
-                }
-
-                page_num++;
-        }while(!isEOF && page_num <= MAX_PAGE_NUMBER);
-
-        *total_pages = (isEOF) ? page_num - 1 : page_num;
-        return 0;
-
-err_free_page_malloc:
-        forgetFreePages(*free_pages);
-        return 1;
-}
-
-extern void forgetFreePages(struct free_page *free_pages){
-        while(free_pages){
-                struct free_page *next = free_pages->next;
-                free(free_pages);
-                free_pages = next;
-        }
-}
-
-extern unsigned insertFreePage(struct free_page **head_page, const unsigned long PAGE_NUM){
-        struct free_page *new_free_page = malloc(sizeof(*new_free_page));
-        if(!new_free_page){
-                fprintf(stderr, "Unable to allocate memory for free pages list.\n");
-                return 1;
-        }
-        new_free_page->page_num = PAGE_NUM;
-        new_free_page->next = NULL;
-
-        while(*head_page){
-                struct free_page *cur_page = *head_page;
-                if(cur_page->page_num > PAGE_NUM){
-                        new_free_page->next = cur_page;
-                        break;
-                }
-
-                head_page = &(cur_page->next);
-        }
-
-        *head_page = new_free_page;
-
-        return 0;
-}
-
 extern unsigned insertPage(FILE *const fp, const unsigned long PAGE_NUM, const uint8_t *const PAGE_DATA, struct free_page **const free_pages){
         if(fseek(fp, HEADER_SIZE + PAGE_NUM*PAGE_SIZE, SEEK_SET)){
                 fprintf(stderr, "Error seeking to page %lu.\n", PAGE_NUM);
@@ -181,20 +103,5 @@ extern unsigned writeFicHeader(FILE *fp){
 extern void writePageNumber(uint8_t *fic_page_num, const unsigned long PAGE_NUM){
         for(size_t i = 0; i < PAGE_NUM_SIZE; i++){
                 fic_page_num[i] = PAGE_NUM >> (i*8);
-        }
-}
-
-static void removeFreePage(const unsigned long PAGE_NUM, struct free_page **head){
-        struct free_page *cur_page = *head;
-        while(cur_page){
-                if(cur_page->page_num == PAGE_NUM){
-                        *head = cur_page->next;
-
-                        free(cur_page);
-                        break;
-                }
-
-                head = &(cur_page->next);
-                cur_page = *head;
         }
 }
