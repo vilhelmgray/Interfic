@@ -28,6 +28,7 @@
 
 static unsigned createNewFic(const char *const fLoc);
 static unsigned createPage(FILE *const fp, const unsigned long PAGE_NUM, struct free_page **free_pages, unsigned long *total_pages);
+static unsigned editPage(FILE *const fp, const unsigned long PAGE_NUM, struct fic_page *const selected_page, struct free_page **free_pages, unsigned long *total_pages);
 static unsigned performMenu(const char *const OPTIONS[], const size_t OPTIONS_SIZE);
 static unsigned long selectPageNumber(const struct free_page *const FREE_PAGES);
 
@@ -83,83 +84,8 @@ static unsigned createNewFic(const char *const fLoc){
                 }
         }
 
-        unsigned option;
-        if(!selected_page.text[0]){
-                printf("Page %lu is empty.\n", page_num);
-                option = 1;
-        }else{
-                printf("Page text:\n%s\n\n", selected_page.text);
-                for(size_t i = 0; i < MAX_NUM_CHOICES && selected_page.choice[i].text[0]; i++){
-                        printf("\tChoice %zu: %s <Go to page %lu.>\n", i+1, selected_page.choice[i].text, selected_page.choice[i].page_num);
-                }
-                putchar('\n');
-
-                const char *const EDIT_MENU[] = { "Create new page", "Add new choice", "Remove a choice" };
-                option = performMenu(EDIT_MENU, sizeof(EDIT_MENU)/sizeof(*EDIT_MENU));
-        }
-
-        switch(option){
-                case 1:
-                        if(createPage(fp, page_num, &free_pages, &total_pages)){
-                                goto exit_page_creation;
-                        }
-                        break;
-                case 2:
-                {
-                        size_t num_choices = 0;
-                        while(num_choices < MAX_NUM_CHOICES && selected_page.choice[num_choices].text[0]){
-                                num_choices++;
-                        }
-
-                        if(num_choices == MAX_NUM_CHOICES){
-                                printf("The is no more room on this page for another choice.\n");
-                                break;
-                        }
-
-                        printf("Enter Choice %zu text (maximum text length of %zu characters): ", num_choices+1, CHOICE_SIZE);
-                        char choice_text[CHOICE_SIZE+1];
-                        fgets(choice_text, sizeof(choice_text), stdin);
-
-                        memcpy(selected_page.choice[num_choices].text, choice_text, CHOICE_SIZE);
-                        selected_page.choice[num_choices].page_num = selectPageNumber(free_pages);
-
-                        if(writePage(fp, page_num, &selected_page, &free_pages, &total_pages)){
-                                goto exit_choice_addition;
-                        }
-
-                        break;
-                }
-                case 3:
-                {
-                        size_t num_choices = 0;
-                        while(num_choices < MAX_NUM_CHOICES && selected_page.choice[num_choices].text[0]){
-                                num_choices++;
-                        }
-
-                        if(!num_choices){
-                                printf("There are already no choices.\n");
-                                break;
-                        }
-
-                        size_t choice;
-                        do{
-                                printf("Enter the number of the choice you want removed (1 - %zu): ", num_choices);
-                                char buffer[32];
-                                fgets(buffer, sizeof(buffer), stdin);
-                                choice = strtoul(buffer, NULL, 0);
-                        }while(!choice || choice > num_choices);
-
-                        if(choice < num_choices){
-                                memmove(selected_page.choice + choice-1, selected_page.choice + choice, (num_choices-choice)*sizeof(*selected_page.choice));
-                        }
-                        selected_page.choice[num_choices-1].text[0] = 0;
-
-                        if(writePage(fp, page_num, &selected_page, &free_pages, &total_pages)){
-                                goto exit_choice_removal;
-                        }
-
-                        break;
-                }
+        if(editPage(fp, page_num, &selected_page, &free_pages, &total_pages)){
+                goto exit_page_modification;
         }
 
         forgetFreePages(free_pages);
@@ -167,9 +93,7 @@ static unsigned createNewFic(const char *const fLoc){
         fclose(fp);
         return 0;
 
-exit_choice_removal:
-exit_choice_addition:
-exit_page_creation:
+exit_page_modification:
 exit_page_selection:
         forgetFreePages(free_pages);
 exit_free_pages_discovery:
@@ -195,6 +119,89 @@ static unsigned createPage(FILE *const fp, const unsigned long PAGE_NUM, struct 
 
         if(writePage(fp, PAGE_NUM, &new_page, free_pages, total_pages)){
                 return 1;
+        }
+
+        return 0;
+}
+
+static unsigned editPage(FILE *const fp, const unsigned long PAGE_NUM, struct fic_page *const selected_page, struct free_page **free_pages, unsigned long *total_pages){
+        unsigned option;
+        if(!selected_page->text[0]){
+                printf("Page %lu is empty.\n", PAGE_NUM);
+                option = 1;
+        }else{
+                printf("Page text:\n%s\n\n", selected_page->text);
+                for(size_t i = 0; i < MAX_NUM_CHOICES && selected_page->choice[i].text[0]; i++){
+                        printf("\tChoice %zu: %s <Go to page %lu.>\n", i+1, selected_page->choice[i].text, selected_page->choice[i].page_num);
+                }
+                putchar('\n');
+
+                const char *const EDIT_MENU[] = { "Create new page", "Add new choice", "Remove a choice" };
+                option = performMenu(EDIT_MENU, sizeof(EDIT_MENU)/sizeof(*EDIT_MENU));
+        }
+
+        switch(option){
+                case 1:
+                        if(createPage(fp, PAGE_NUM, free_pages, total_pages)){
+                                return 1;
+                        }
+                        break;
+                case 2:
+                {
+                        size_t num_choices = 0;
+                        while(num_choices < MAX_NUM_CHOICES && selected_page->choice[num_choices].text[0]){
+                                num_choices++;
+                        }
+
+                        if(num_choices == MAX_NUM_CHOICES){
+                                printf("The is no more room on this page for another choice.\n");
+                                break;
+                        }
+
+                        printf("Enter Choice %zu text (maximum text length of %zu characters): ", num_choices+1, CHOICE_SIZE);
+                        char choice_text[CHOICE_SIZE+1];
+                        fgets(choice_text, sizeof(choice_text), stdin);
+
+                        memcpy(selected_page->choice[num_choices].text, choice_text, CHOICE_SIZE);
+                        selected_page->choice[num_choices].page_num = selectPageNumber(*free_pages);
+
+                        if(writePage(fp, PAGE_NUM, selected_page, free_pages, total_pages)){
+                                return 1;
+                        }
+
+                        break;
+                }
+                case 3:
+                {
+                        size_t num_choices = 0;
+                        while(num_choices < MAX_NUM_CHOICES && selected_page->choice[num_choices].text[0]){
+                                num_choices++;
+                        }
+
+                        if(!num_choices){
+                                printf("There are already no choices.\n");
+                                break;
+                        }
+
+                        size_t choice;
+                        do{
+                                printf("Enter the number of the choice you want removed (1 - %zu): ", num_choices);
+                                char buffer[32];
+                                fgets(buffer, sizeof(buffer), stdin);
+                                choice = strtoul(buffer, NULL, 0);
+                        }while(!choice || choice > num_choices);
+
+                        if(choice < num_choices){
+                                memmove(selected_page->choice + choice-1, selected_page->choice + choice, (num_choices-choice)*sizeof(*selected_page->choice));
+                        }
+                        selected_page->choice[num_choices-1].text[0] = 0;
+
+                        if(writePage(fp, PAGE_NUM, selected_page, free_pages, total_pages)){
+                                return 1;
+                        }
+
+                        break;
+                }
         }
 
         return 0;
