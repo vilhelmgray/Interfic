@@ -83,6 +83,7 @@ static unsigned createNewFic(const char *const fLoc){
                 }
         }
 
+        unsigned option;
         if(!selected_page.text[0]){
                 printf("Page %lu is empty.\n", page_num);
                 option = 1;
