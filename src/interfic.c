@@ -106,6 +106,12 @@ static unsigned createNewFic(const char *const fLoc){
 
         if(!selected_page.text[0]){
                 printf("Page %lu is empty.\n", page_num);
+        }else{
+                printf("Page text:\n%s\n\n", selected_page.text);
+                for(size_t i = 0; i < MAX_NUM_CHOICES && selected_page.choice[i].text[0]; i++){
+                        printf("\tChoice %zu: %s (page %lu)\n", i+1, selected_page.choice[i].text, selected_page.choice[i].page_num);
+                }
+                putchar('\n');
         }
 
         const char *const EDIT_MENU[] = { "Create new page", "Add new choice" };
@@ -152,13 +158,13 @@ static unsigned createPage(FILE *const fp, const unsigned long PAGE_NUM, struct 
         }while(num_choices > MAX_NUM_CHOICES);
 
         for(unsigned i = 0; i < num_choices; i++){
-                printf("Enter Choice %u text (maximum text length of %zu characters): ", i, CHOICE_SIZE);
+                printf("Enter Choice %u text (maximum text length of %zu characters): ", i+1, CHOICE_SIZE);
                 const size_t CHOICE_OFFSET = TEXT_SIZE + i*(CHOICE_SIZE+PAGE_NUM_SIZE);
                 fgets(page_data + CHOICE_OFFSET, CHOICE_SIZE+1, stdin);
 
                 unsigned long choice_page_num;
                 do{
-                        printf("Enter Choice %u page number (0 - %lu): ", i, MAX_PAGE_NUMBER);
+                        printf("Enter Choice %u page number (0 - %lu): ", i+1, MAX_PAGE_NUMBER);
                         char buffer[32];
                         fgets(buffer, sizeof(buffer), stdin);
                         choice_page_num = strtoul(buffer, NULL, 0);
