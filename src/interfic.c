@@ -94,7 +94,7 @@ static unsigned createNewFic(const char *const fLoc){
                 }
                 putchar('\n');
 
-                const char *const EDIT_MENU[] = { "Create new page", "Add new choice" };
+                const char *const EDIT_MENU[] = { "Create new page", "Add new choice", "Remove a choice" };
                 option = performMenu(EDIT_MENU, sizeof(EDIT_MENU)/sizeof(*EDIT_MENU));
         }
 
@@ -129,6 +129,30 @@ static unsigned createNewFic(const char *const fLoc){
 
                         break;
                 }
+                case 3:
+                        size_t num_choices = 0;
+                        while(num_choices < MAX_NUM_CHOICES && selected_page.choice[num_choices].text[0]){
+                                num_choices++;
+                        }
+
+                        if(!num_choices){
+                                printf("There are already no choices.\n");
+                                break;
+                        }
+
+                        size_t choice;
+                        do{
+                                printf("Enter the number of the choice you want removed (1 - %zu): ", num_choices);
+                                char buffer[32];
+                                fgets(buffer, sizeof(buffer), stdin);
+                                choice = strtoul(buffer, NULL, 0);
+                        }while(!choice || choice > num_choices);
+
+                        if(choice < num_choices){
+                                memmove(selected_page.choice + choice-1, selected_page.choice + choice, (num_choices-choice)*sizeof(*selected_page.choice));
+                        }
+                        selected_page.choice[num_choices-1].text[0] = 0;
+                        break;
         }
 
         forgetFreePages(free_pages);
