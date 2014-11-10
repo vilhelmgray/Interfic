@@ -130,6 +130,7 @@ static unsigned createNewFic(const char *const fLoc){
                         break;
                 }
                 case 3:
+                {
                         size_t num_choices = 0;
                         while(num_choices < MAX_NUM_CHOICES && selected_page.choice[num_choices].text[0]){
                                 num_choices++;
@@ -153,6 +154,7 @@ static unsigned createNewFic(const char *const fLoc){
                         }
                         selected_page.choice[num_choices-1].text[0] = 0;
                         break;
+                }
         }
 
         forgetFreePages(free_pages);
