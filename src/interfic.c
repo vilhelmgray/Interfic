@@ -110,20 +110,23 @@ static unsigned createNewFic(const char *const fLoc){
                         while(num_choices < MAX_NUM_CHOICES && selected_page.choice[num_choices].text[0]){
                                 num_choices++;
                         }
+
                         if(num_choices == MAX_NUM_CHOICES){
                                 printf("The is no more room on this page for another choice.\n");
-                        }else{
-                                printf("Enter Choice %zu text (maximum text length of %zu characters): ", num_choices+1, CHOICE_SIZE);
-                                char choice_text[CHOICE_SIZE+1];
-                                fgets(choice_text, sizeof(choice_text), stdin);
-
-                                memcpy(selected_page.choice[num_choices].text, choice_text, CHOICE_SIZE);
-                                selected_page.choice[num_choices].page_num = selectPageNumber(free_pages);
-
-                                if(writePage(fp, page_num, &selected_page, &free_pages, &total_pages)){
-                                        return 1;
-                                }
+                                break;
                         }
+
+                        printf("Enter Choice %zu text (maximum text length of %zu characters): ", num_choices+1, CHOICE_SIZE);
+                        char choice_text[CHOICE_SIZE+1];
+                        fgets(choice_text, sizeof(choice_text), stdin);
+
+                        memcpy(selected_page.choice[num_choices].text, choice_text, CHOICE_SIZE);
+                        selected_page.choice[num_choices].page_num = selectPageNumber(free_pages);
+
+                        if(writePage(fp, page_num, &selected_page, &free_pages, &total_pages)){
+                                return 1;
+                        }
+
                         break;
                 }
         }
