@@ -29,6 +29,7 @@
 static unsigned createNewFic(const char *const fLoc);
 static unsigned createPage(FILE *const fp, const unsigned long PAGE_NUM, struct free_page **free_pages, unsigned long *total_pages);
 static unsigned performMenu(const char *const OPTIONS[], const size_t OPTIONS_SIZE);
+static unsigned long selectPageNumber(const struct free_page *const FREE_PAGES);
 
 int main(void){
         const char *const FILE_MENU[] = { "Open existing file", "Create new file" };
@@ -73,29 +74,7 @@ static unsigned createNewFic(const char *const fLoc){
                 goto exit_free_pages_discovery;
         }
 
-        const char *const SELECT_MENU[] = { "Use a known free page", "Enter a specific page number" };
-        unsigned option = performMenu(SELECT_MENU, sizeof(SELECT_MENU)/sizeof(*SELECT_MENU));
-
-        unsigned long page_num;
-        switch(option){
-                case 1:
-                        if(free_pages){
-                                page_num = free_pages->page_num;
-                        }else{
-                                printf("There are no pages free.\n");
-                                page_num = MAX_PAGE_NUMBER;
-                        }
-                        printf("Page %lu selected.\n", page_num);
-                        break;
-                case 2:
-                        do{
-                                printf("Enter page number (0 - %lu): ", MAX_PAGE_NUMBER);
-                                char buffer[32];
-                                fgets(buffer, sizeof(buffer), stdin);
-                                page_num = strtoul(buffer, NULL, 0);
-                        }while(page_num > MAX_PAGE_NUMBER);
-                        break;
-        }
+        unsigned long page_num = selectPageNumber(free_pages);
 
         struct fic_page selected_page = {0};
         if(page_num < total_pages){
@@ -136,6 +115,8 @@ static unsigned createNewFic(const char *const fLoc){
                                 printf("Enter Choice %zu text (maximum text length of %zu characters): ", num_choices+1, CHOICE_SIZE);
                                 char choice_text[CHOICE_SIZE+1];
                                 fgets(choice_text, sizeof(choice_text), stdin);
+
+                                selected_page.choice[num_choices].page_num = selectPageNumber(free_pages);
 
                                 memcpy(selected_page.choice[num_choices].text, choice_text, CHOICE_SIZE);
 
@@ -197,4 +178,32 @@ static unsigned performMenu(const char *const OPTIONS[], const size_t OPTIONS_SI
         }while(!option || option > OPTIONS_SIZE);
 
         return option;
+}
+
+static unsigned long selectPageNumber(const struct free_page *const FREE_PAGES){
+        const char *const SELECT_MENU[] = { "Use a known free page", "Enter a specific page number" };
+        unsigned option = performMenu(SELECT_MENU, sizeof(SELECT_MENU)/sizeof(*SELECT_MENU));
+
+        unsigned long page_num;
+        switch(option){
+                case 1:
+                        if(FREE_PAGES){
+                                page_num = FREE_PAGES->page_num;
+                        }else{
+                                printf("There are no pages free.\n");
+                                page_num = MAX_PAGE_NUMBER;
+                        }
+                        printf("Page %lu selected.\n", page_num);
+                        break;
+                case 2:
+                        do{
+                                printf("Enter page number (0 - %lu): ", MAX_PAGE_NUMBER);
+                                char buffer[32];
+                                fgets(buffer, sizeof(buffer), stdin);
+                                page_num = strtoul(buffer, NULL, 0);
+                        }while(page_num > MAX_PAGE_NUMBER);
+                        break;
+        }
+
+        return page_num;
 }
