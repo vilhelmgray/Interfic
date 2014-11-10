@@ -107,7 +107,7 @@ extern unsigned readPage(FILE *const fp, const unsigned long PAGE_NUM, struct fi
                 return 1;
         }
 
-        memcpy(read_page->text, page_data, PAGE_SIZE);
+        memcpy(read_page->text, page_data, TEXT_SIZE);
         for(size_t i = 0; i < MAX_NUM_CHOICES; i++){
                 const size_t CHOICE_OFFSET = TEXT_SIZE + i*(CHOICE_SIZE + PAGE_NUM_SIZE);
                 memcpy(read_page->choice[i].text, page_data + CHOICE_OFFSET, CHOICE_SIZE);
