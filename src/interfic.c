@@ -124,7 +124,7 @@ static unsigned createNewFic(const char *const fLoc){
                         selected_page.choice[num_choices].page_num = selectPageNumber(free_pages);
 
                         if(writePage(fp, page_num, &selected_page, &free_pages, &total_pages)){
-                                return 1;
+                                goto exit_choice_addition;
                         }
 
                         break;
@@ -155,7 +155,7 @@ static unsigned createNewFic(const char *const fLoc){
                         selected_page.choice[num_choices-1].text[0] = 0;
 
                         if(writePage(fp, page_num, &selected_page, &free_pages, &total_pages)){
-                                return 1;
+                                goto exit_choice_removal;
                         }
 
                         break;
@@ -167,6 +167,8 @@ static unsigned createNewFic(const char *const fLoc){
         fclose(fp);
         return 0;
 
+exit_choice_removal:
+exit_choice_addition:
 exit_page_creation:
 exit_page_selection:
         forgetFreePages(free_pages);
