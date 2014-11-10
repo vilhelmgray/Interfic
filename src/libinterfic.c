@@ -31,8 +31,8 @@ static const uint8_t VERSION = 0;
 #define MAX_FIC_SIZE    (MAX_OFFSET + PAGE_SIZE - HEADER_SIZE)
 const unsigned long MAX_PAGE_NUMBER = MAX_FIC_SIZE/PAGE_SIZE - 1;
 
-extern unsigned addPaddingPages(FILE *const fp, struct free_page *free_pages, const unsigned long TOTAL_PAGES, const unsigned long NUM_PAD_PAGES){
-        if(fseek(fp, HEADER_SIZE + TOTAL_PAGES*PAGE_SIZE, SEEK_SET)){
+extern unsigned addPaddingPages(FILE *const fp, struct free_page *free_pages, unsigned long *const total_pages, const unsigned long NUM_PAD_PAGES){
+        if(fseek(fp, HEADER_SIZE + (*total_pages)*PAGE_SIZE, SEEK_SET)){
                 fprintf(stderr, "Error seeking to end of file.\n");
                 return 1;
         }
@@ -43,7 +43,7 @@ extern unsigned addPaddingPages(FILE *const fp, struct free_page *free_pages, co
         }
         struct free_page *const PAD_PAGES_BEGIN = *free_pages_end;
 
-        for(unsigned long i = TOTAL_PAGES; i < TOTAL_PAGES + NUM_PAD_PAGES; i++){
+        for(unsigned long i = *total_pages; i < *total_pages + NUM_PAD_PAGES; i++){
                 const unsigned char PAD_PAGE[PAGE_SIZE] = {'\0'};
                 if(!fwrite(PAD_PAGE, sizeof(PAD_PAGE), 1, fp)){
                         fprintf(stderr, "Error writing padding pages.\n");
@@ -62,6 +62,8 @@ extern unsigned addPaddingPages(FILE *const fp, struct free_page *free_pages, co
                 free_pages_end = &(tmp_page->next);
         }
 
+        *total_pages += NUM_PAD_PAGES;
+
         return 0;
 
 err_free_page_malloc:
@@ -70,7 +72,7 @@ err_pad_page_write:
         return 1;
 }
 
-extern unsigned insertPage(FILE *const fp, const unsigned long PAGE_NUM, const uint8_t *const PAGE_DATA, struct free_page **const free_pages){
+extern unsigned insertPage(FILE *const fp, const unsigned long PAGE_NUM, const uint8_t *const PAGE_DATA, struct free_page **const free_pages, unsigned long *const total_pages){
         if(fseek(fp, HEADER_SIZE + PAGE_NUM*PAGE_SIZE, SEEK_SET)){
                 fprintf(stderr, "Error seeking to page %lu.\n", PAGE_NUM);
                 return 1;
@@ -82,6 +84,16 @@ extern unsigned insertPage(FILE *const fp, const unsigned long PAGE_NUM, const u
         }
 
         removeFreePage(PAGE_NUM, free_pages);
+
+        if(PAGE_NUM == *total_pages){
+                (*total_pages)++;
+
+                if(*total_pages <= MAX_PAGE_NUMBER){
+                        if(insertFreePage(free_pages, *total_pages)){
+                                return 1;
+                        }
+                }
+        }
 
         return 0;
 }

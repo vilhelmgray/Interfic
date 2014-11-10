@@ -162,23 +162,13 @@ static unsigned createPage(struct free_page **free_pages, unsigned long *total_p
 
         if(page_num > *total_pages){
                 const unsigned long NUM_PAD_PAGES = page_num - *total_pages;
-                if(addPaddingPages(fp, *free_pages, *total_pages, NUM_PAD_PAGES)){
+                if(addPaddingPages(fp, *free_pages, total_pages, NUM_PAD_PAGES)){
                         return 1;
                 }
-                *total_pages += NUM_PAD_PAGES;
         }
 
-        if(insertPage(fp, page_num, page_data, free_pages)){
+        if(insertPage(fp, page_num, page_data, free_pages, total_pages)){
                 return 1;
-        }
-        if(page_num == *total_pages){
-                (*total_pages)++;
-
-                if(*total_pages <= MAX_PAGE_NUMBER){
-                        if(insertFreePage(free_pages, *total_pages)){
-                                return 1;
-                        }
-                }
         }
 
         return 0;
