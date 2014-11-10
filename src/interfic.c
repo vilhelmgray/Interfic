@@ -97,14 +97,14 @@ static unsigned createNewFic(const char *const fLoc){
                         break;
         }
 
-        uint8_t page_data[PAGE_SIZE] = {0};
+        struct fic_page selected_page = { .text = "" };
         if(page_num < total_pages){
-                if(lookupPage(fp, page_num, page_data)){
+                if(readPage(fp, page_num, &selected_page)){
                         goto exit_page_selection;
                 }
         }
 
-        if(!page_data[0]){
+        if(!selected_page.text[0]){
                 printf("Page %lu is empty.\n", page_num);
         }
 

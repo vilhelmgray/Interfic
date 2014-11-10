@@ -33,9 +33,18 @@
 #define PAGE_SIZE       (TEXT_SIZE + MAX_NUM_CHOICES*(CHOICE_SIZE + PAGE_NUM_SIZE))
 extern const unsigned long MAX_PAGE_NUMBER;
 
+struct fic_choice{
+        char text[CHOICE_SIZE];
+        unsigned long page_num;
+};
+struct fic_page{
+        char text[TEXT_SIZE];
+        struct fic_choice choice[MAX_NUM_CHOICES];
+};
+
 extern unsigned addPaddingPages(FILE *const fp, struct free_page *free_pages, unsigned long *const total_pages, const unsigned long NUM_PAD_PAGES);
 extern unsigned insertPage(FILE *const fp, const unsigned long PAGE_NUM, const uint8_t *const PAGE_DATA, struct free_page **const free_pages, unsigned long *const total_pages);
-extern unsigned lookupPage(FILE *const fp, const unsigned long PAGE_NUM, uint8_t *const page_data);
+extern unsigned readPage(FILE *const fp, const unsigned long PAGE_NUM, struct fic_page *read_page);
 extern unsigned writeFicHeader(FILE *fp);
 extern void writePageNumber(uint8_t *fic_page_num, const unsigned long PAGE_NUM);
 

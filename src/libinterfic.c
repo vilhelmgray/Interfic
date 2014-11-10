@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "free_pages.h"
 #include "libinterfic.h"
@@ -30,6 +31,8 @@ static const uint8_t VERSION = 0;
 #define MAX_OFFSET      ((1UL<<31) - 1)
 #define MAX_FIC_SIZE    (MAX_OFFSET + PAGE_SIZE - HEADER_SIZE)
 const unsigned long MAX_PAGE_NUMBER = MAX_FIC_SIZE/PAGE_SIZE - 1;
+
+static unsigned long readPageNumber(const uint8_t *const FIC_PAGE_NUM);
 
 extern unsigned addPaddingPages(FILE *const fp, struct free_page *free_pages, unsigned long *const total_pages, const unsigned long NUM_PAD_PAGES){
         if(fseek(fp, HEADER_SIZE + (*total_pages)*PAGE_SIZE, SEEK_SET)){
@@ -92,15 +95,24 @@ extern unsigned insertPage(FILE *const fp, const unsigned long PAGE_NUM, const u
         return 0;
 }
 
-extern unsigned lookupPage(FILE *const fp, const unsigned long PAGE_NUM, uint8_t *const page_data){
+extern unsigned readPage(FILE *const fp, const unsigned long PAGE_NUM, struct fic_page *read_page){
         if(fseek(fp, HEADER_SIZE + PAGE_NUM*PAGE_SIZE, SEEK_SET)){
                 fprintf(stderr, "Error seeking to page %lu.\n", PAGE_NUM);
                 return 1;
         }
 
+        uint8_t page_data[PAGE_SIZE];
         if(!fread(page_data, PAGE_SIZE, 1, fp)){
                 fprintf(stderr, "Error reading page %lu.\n", PAGE_NUM);
                 return 1;
+        }
+
+        memcpy(read_page->text, page_data, PAGE_SIZE);
+        for(size_t i = 0; i < MAX_NUM_CHOICES; i++){
+                const size_t CHOICE_OFFSET = TEXT_SIZE + i*(CHOICE_SIZE + PAGE_NUM_SIZE);
+                memcpy(read_page->choice[i].text, page_data + CHOICE_OFFSET, CHOICE_SIZE);
+
+                read_page->choice[i].page_num = readPageNumber(page_data + CHOICE_OFFSET + CHOICE_SIZE);
         }
 
         return 0;
@@ -124,4 +136,13 @@ extern void writePageNumber(uint8_t *fic_page_num, const unsigned long PAGE_NUM)
         for(size_t i = 0; i < PAGE_NUM_SIZE; i++){
                 fic_page_num[i] = PAGE_NUM >> (i*8);
         }
+}
+
+static unsigned long readPageNumber(const uint8_t *const FIC_PAGE_NUM){
+        unsigned long page_num = 0;
+        for(size_t i = 0; i < PAGE_NUM_SIZE; i++){
+                page_num |= (unsigned long)FIC_PAGE_NUM[i] << i*8;
+        }
+
+        return page_num;
 }
