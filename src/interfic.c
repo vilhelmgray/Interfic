@@ -107,7 +107,7 @@ static unsigned createNewFic(const char *const fLoc){
                 case 2:
                 {
                         size_t num_choices = 0;
-                        while(selected_page.choice[num_choices].text[0]){
+                        while(num_choices < MAX_NUM_CHOICES && selected_page.choice[num_choices].text[0]){
                                 num_choices++;
                         }
                         if(num_choices == MAX_NUM_CHOICES){
