@@ -70,6 +70,23 @@ err_pad_page_write:
         return 1;
 }
 
+extern unsigned erasePage(FILE *const fp, const unsigned long PAGE_NUM, struct free_page **const free_pages){
+        if(fseek(fp, HEADER_SIZE + PAGE_NUM*PAGE_SIZE, SEEK_SET)){
+                fprintf(stderr, "Error seeking to page %lu.\n", PAGE_NUM);
+                return 1;
+        }
+
+        uint8_t page_data[PAGE_SIZE] = {0};
+        if(!fwrite(page_data, PAGE_SIZE, 1, fp)){
+                fprintf(stderr, "Error erasing page %lu.\n", PAGE_NUM);
+                return 1;
+        }
+
+        insertFreePage(free_pages, PAGE_NUM);
+
+        return 0;
+}
+
 extern unsigned readPage(FILE *const fp, const unsigned long PAGE_NUM, struct fic_page *read_page){
         if(fseek(fp, HEADER_SIZE + PAGE_NUM*PAGE_SIZE, SEEK_SET)){
                 fprintf(stderr, "Error seeking to page %lu.\n", PAGE_NUM);
