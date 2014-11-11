@@ -76,8 +76,7 @@ extern unsigned erasePage(FILE *const fp, const unsigned long PAGE_NUM, struct f
                 return 1;
         }
 
-        uint8_t page_data[PAGE_SIZE] = {0};
-        if(!fwrite(page_data, PAGE_SIZE, 1, fp)){
+        if(fputc(0, fp)){
                 fprintf(stderr, "Error erasing page %lu.\n", PAGE_NUM);
                 return 1;
         }
