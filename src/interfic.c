@@ -175,7 +175,7 @@ static unsigned editPage(unsigned long *const next_page_num, FILE *const fp, con
                 }
                 putchar('\n');
 
-                const char *const EDIT_MENU[] = { "Create new page", "Add new choice", "Remove a choice", "Remove page" };
+                const char *const EDIT_MENU[] = { "Create new page", "Add new choice", "Remove a choice", "Remove page", "Exit menu" };
                 option = performMenu(EDIT_MENU, sizeof(EDIT_MENU)/sizeof(*EDIT_MENU));
         }
 
@@ -199,6 +199,8 @@ static unsigned editPage(unsigned long *const next_page_num, FILE *const fp, con
                         if(erasePage(fp, PAGE_NUM, free_pages)){
                                 return 1;
                         }
+                        break;
+                default:
                         break;
         }
 
