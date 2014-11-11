@@ -298,7 +298,7 @@ static unsigned removeChoice(FILE *const fp, const unsigned long PAGE_NUM, struc
 }
 
 static unsigned long selectPageNumber(const struct free_page *const FREE_PAGES){
-        const char *const SELECT_MENU[] = { "Use a known free page", "Enter a specific page number" };
+        const char *const SELECT_MENU[] = { "Go to a known free page", "Enter a specific page number" };
         unsigned option = performMenu(SELECT_MENU, sizeof(SELECT_MENU)/sizeof(*SELECT_MENU));
 
         unsigned long page_num;
