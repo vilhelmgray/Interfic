@@ -37,7 +37,7 @@ static unsigned removeChoice(FILE *const fp, const unsigned long PAGE_NUM, struc
 static unsigned long selectPageNumber(const struct free_page *const FREE_PAGES);
 
 int main(void){
-        const char *const FILE_MENU[] = { "Read file", "Create new file", "Edit existing file" };
+        const char *const FILE_MENU[] = { "Read file", "Edit existing file", "Create new file" };
         unsigned option = performMenu(FILE_MENU, sizeof(FILE_MENU)/sizeof(*FILE_MENU));
 
         printf("Enter the file location: ");
@@ -53,12 +53,12 @@ int main(void){
                 case 1:
                         break;
                 case 2:
-                        if(createNewFic(fLoc)){
+                        if(editFic(fLoc)){
                                 return 1;
                         }
                         break;
                 case 3:
-                        if(editFic(fLoc)){
+                        if(createNewFic(fLoc)){
                                 return 1;
                         }
                         break;
