@@ -72,7 +72,7 @@ static unsigned addChoice(unsigned long *const next_page_num, FILE *const fp, co
         }
 
         printf("Enter Choice %zu text (maximum text length of %zu characters): ", num_choices+1, CHOICE_SIZE);
-        char choice_text[CHOICE_SIZE+1];
+        char choice_text[CHOICE_SIZE+1] = "";
         fgets(choice_text, sizeof(choice_text), stdin);
 
         memcpy(selected_page->choice[num_choices].text, choice_text, CHOICE_SIZE);
