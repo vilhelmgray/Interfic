@@ -236,6 +236,7 @@ static unsigned modifyPages(FILE *const fp){
                         option = performMenu(EXIT_MENU, sizeof(EXIT_MENU)/sizeof(*EXIT_MENU));
                 }else{
                         page_num = next_page_num;
+                        option = 2;
                 }
         }while(option != 1);
 
