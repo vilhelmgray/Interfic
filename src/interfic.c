@@ -26,10 +26,10 @@
 #include "free_pages.h"
 #include "libinterfic.h"
 
-static unsigned addChoice(FILE *const fp, const unsigned long PAGE_NUM, struct fic_page *const selected_page, struct free_page **free_pages, unsigned long *total_pages);
+static unsigned addChoice(unsigned long *const next_page_num, FILE *const fp, const unsigned long PAGE_NUM, struct fic_page *const selected_page, struct free_page **free_pages, unsigned long *total_pages);
 static unsigned createNewFic(const char *const fLoc);
 static unsigned createPage(FILE *const fp, const unsigned long PAGE_NUM, struct free_page **free_pages, unsigned long *total_pages);
-static unsigned editPage(FILE *const fp, const unsigned long PAGE_NUM, struct fic_page *const selected_page, struct free_page **free_pages, unsigned long *total_pages);
+static unsigned editPage(unsigned long *const next_page_num, FILE *const fp, const unsigned long PAGE_NUM, struct fic_page *const selected_page, struct free_page **free_pages, unsigned long *total_pages);
 static unsigned performMenu(const char *const OPTIONS[], const size_t OPTIONS_SIZE);
 static unsigned removeChoice(FILE *const fp, const unsigned long PAGE_NUM, struct fic_page *const selected_page, struct free_page **free_pages, unsigned long *total_pages);
 static unsigned long selectPageNumber(const struct free_page *const FREE_PAGES);
@@ -60,7 +60,7 @@ int main(void){
         return 0;
 }
 
-static unsigned addChoice(FILE *const fp, const unsigned long PAGE_NUM, struct fic_page *const selected_page, struct free_page **free_pages, unsigned long *total_pages){
+static unsigned addChoice(unsigned long *const next_page_num, FILE *const fp, const unsigned long PAGE_NUM, struct fic_page *const selected_page, struct free_page **free_pages, unsigned long *total_pages){
         size_t num_choices = 0;
         while(num_choices < MAX_NUM_CHOICES && selected_page->choice[num_choices].text[0]){
                 num_choices++;
@@ -82,6 +82,8 @@ static unsigned addChoice(FILE *const fp, const unsigned long PAGE_NUM, struct f
                 return 1;
         }
 
+        *next_page_num = selected_page->choice[num_choices].page_num;
+
         return 0;
 }
 
@@ -102,18 +104,32 @@ static unsigned createNewFic(const char *const fLoc){
                 goto exit_free_pages_discovery;
         }
 
-        unsigned long page_num = selectPageNumber(free_pages);
-
-        struct fic_page selected_page = {0};
-        if(page_num < total_pages){
-                if(readPage(fp, page_num, &selected_page)){
-                        goto exit_page_selection;
+        unsigned option = 3;
+        do{
+                static unsigned long page_num = 0;
+                if(option == 3){
+                        page_num = selectPageNumber(free_pages);
                 }
-        }
 
-        if(editPage(fp, page_num, &selected_page, &free_pages, &total_pages)){
-                goto exit_page_modification;
-        }
+                struct fic_page selected_page = {0};
+                if(page_num < total_pages){
+                        if(readPage(fp, page_num, &selected_page)){
+                                goto exit_page_selection;
+                        }
+                }
+
+                unsigned long next_page_num = page_num;
+                if(editPage(&next_page_num, fp, page_num, &selected_page, &free_pages, &total_pages)){
+                        goto exit_page_modification;
+                }
+
+                if(next_page_num == page_num){
+                        const char *const EXIT_MENU[] = { "Exit now", "Edit current page", "Choose a page" };
+                        option = performMenu(EXIT_MENU, sizeof(EXIT_MENU)/sizeof(*EXIT_MENU));
+                }else{
+                        page_num = next_page_num;
+                }
+        }while(option != 1);
 
         forgetFreePages(free_pages);
 
@@ -151,7 +167,7 @@ static unsigned createPage(FILE *const fp, const unsigned long PAGE_NUM, struct 
         return 0;
 }
 
-static unsigned editPage(FILE *const fp, const unsigned long PAGE_NUM, struct fic_page *const selected_page, struct free_page **free_pages, unsigned long *total_pages){
+static unsigned editPage(unsigned long *const next_page_num, FILE *const fp, const unsigned long PAGE_NUM, struct fic_page *const selected_page, struct free_page **free_pages, unsigned long *total_pages){
         unsigned option;
         if(!selected_page->text[0]){
                 printf("Page %lu is empty.\n", PAGE_NUM);
@@ -178,7 +194,7 @@ static unsigned editPage(FILE *const fp, const unsigned long PAGE_NUM, struct fi
                         }
                         break;
                 case 2:
-                        if(addChoice(fp, PAGE_NUM, selected_page, free_pages, total_pages)){
+                        if(addChoice(next_page_num, fp, PAGE_NUM, selected_page, free_pages, total_pages)){
                                 return 1;
                         }
                         break;
