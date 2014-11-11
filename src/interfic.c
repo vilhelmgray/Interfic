@@ -157,9 +157,13 @@ static unsigned editPage(FILE *const fp, const unsigned long PAGE_NUM, struct fi
                 printf("Page %lu is empty.\n", PAGE_NUM);
                 option = 1;
         }else{
-                printf("Page text:\n%s\n\n", selected_page->text);
+                char page_text[TEXT_SIZE+1] = "";
+                memcpy(page_text, selected_page->text, TEXT_SIZE);
+                printf("Page text:\n%s\n\n", page_text);
                 for(size_t i = 0; i < MAX_NUM_CHOICES && selected_page->choice[i].text[0]; i++){
-                        printf("\tChoice %zu: %s <Go to page %lu.>\n", i+1, selected_page->choice[i].text, selected_page->choice[i].page_num);
+                        char choice_text[CHOICE_SIZE+1] = "";
+                        memcpy(choice_text, selected_page->choice[i]->text, CHOICE_SIZE);
+                        printf("\tChoice %zu: %s <Go to page %lu.>\n", i+1, choice_text, selected_page->choice[i].page_num);
                 }
                 putchar('\n');
 

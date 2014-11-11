@@ -34,11 +34,11 @@
 extern const unsigned long MAX_PAGE_NUMBER;
 
 struct fic_choice{
-        char text[CHOICE_SIZE];
+        uint8_t text[CHOICE_SIZE];
         unsigned long page_num;
 };
 struct fic_page{
-        char text[TEXT_SIZE];
+        uint8_t text[TEXT_SIZE];
         struct fic_choice choice[MAX_NUM_CHOICES];
 };
 
