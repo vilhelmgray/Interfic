@@ -33,6 +33,8 @@ static unsigned editFic(const char *const fLoc);
 static unsigned editPage(unsigned long *const next_page_num, FILE *const fp, const unsigned long PAGE_NUM, struct fic_page *const selected_page, struct free_page **free_pages, unsigned long *total_pages);
 static unsigned modifyPages(FILE *const fp);
 static unsigned performMenu(const char *const OPTIONS[], const size_t OPTIONS_SIZE);
+static void printPage(const struct fic_page *const SELECTED_PAGE);
+static unsigned readFic(const char *const fLoc);
 static unsigned removeChoice(FILE *const fp, const unsigned long PAGE_NUM, struct fic_page *const selected_page, struct free_page **free_pages, unsigned long *total_pages);
 static unsigned long selectPageNumber(const struct free_page *const FREE_PAGES);
 
@@ -51,6 +53,9 @@ int main(void){
 
         switch(option){
                 case 1:
+                        if(readFic(fLoc)){
+                                return 1;
+                        }
                         break;
                 case 2:
                         if(editFic(fLoc)){
@@ -160,23 +165,14 @@ exit_modify_pages:
 }
 
 static unsigned editPage(unsigned long *const next_page_num, FILE *const fp, const unsigned long PAGE_NUM, struct fic_page *const selected_page, struct free_page **free_pages, unsigned long *total_pages){
-        unsigned option;
-        if(!selected_page->text[0]){
-                printf("Page %lu is empty.\n", PAGE_NUM);
-                option = 1;
-        }else{
-                char page_text[TEXT_SIZE+1] = "";
-                memcpy(page_text, selected_page->text, TEXT_SIZE);
-                printf("Page text:\n%s\n\n", page_text);
-                for(size_t i = 0; i < MAX_NUM_CHOICES && selected_page->choice[i].text[0]; i++){
-                        char choice_text[CHOICE_SIZE+1] = "";
-                        memcpy(choice_text, selected_page->choice[i].text, CHOICE_SIZE);
-                        printf("\tChoice %zu: %s <Go to page %lu.>\n", i+1, choice_text, selected_page->choice[i].page_num);
-                }
-                putchar('\n');
+        unsigned option = 1;
+        if(selected_page->text[0]){
+                printPage(selected_page);
 
                 const char *const EDIT_MENU[] = { "Create new page", "Add new choice", "Remove a choice", "Remove page", "Exit menu" };
                 option = performMenu(EDIT_MENU, sizeof(EDIT_MENU)/sizeof(*EDIT_MENU));
+        }else{
+                printf("Page %lu is empty.\n", PAGE_NUM);
         }
 
         switch(option){
@@ -266,6 +262,84 @@ static unsigned performMenu(const char *const OPTIONS[], const size_t OPTIONS_SI
         }while(!option || option > OPTIONS_SIZE);
 
         return option;
+}
+
+static void printPage(const struct fic_page *const SELECTED_PAGE){
+        char page_text[TEXT_SIZE+1] = "";
+        memcpy(page_text, SELECTED_PAGE->text, TEXT_SIZE);
+        printf("Page text:\n%s\n\n", page_text);
+
+        for(size_t i = 0; i < MAX_NUM_CHOICES && SELECTED_PAGE->choice[i].text[0]; i++){
+                char choice_text[CHOICE_SIZE+1] = "";
+                memcpy(choice_text, SELECTED_PAGE->choice[i].text, CHOICE_SIZE);
+
+                printf("\tChoice %zu: %s <Go to page %lu.>\n", i+1, choice_text, SELECTED_PAGE->choice[i].page_num);
+        }
+
+        putchar('\n');
+}
+
+static unsigned readFic(const char *const fLoc){
+        FILE *const fp = fopen(fLoc, "rb");
+        if(!fp){
+                fprintf(stderr, "Unable to open %s!\n", fLoc);
+                return 1;
+        }
+
+        unsigned option = 1;
+        do{
+                static unsigned long page_num = 0;
+                if(option == 1){
+                        do{
+                                printf("Enter page number (0 - %lu): ", MAX_PAGE_NUMBER);
+                                char buffer[32];
+                                fgets(buffer, sizeof(buffer), stdin);
+                                page_num = strtoul(buffer, NULL, 0);
+                        }while(page_num > MAX_PAGE_NUMBER);
+                }
+
+                struct fic_page page = {0};
+                if(readPage(fp, page_num, &page)){
+                        goto exit_page_read;
+                }
+
+                if(page.text[0]){
+                        printPage(&page);
+
+                        size_t num_choices = 0;
+                        while(num_choices < MAX_NUM_CHOICES && page.choice[num_choices].text[0]){
+                                num_choices++;
+                        }
+
+                        if(num_choices){
+                                size_t choice;
+                                do{
+                                        printf("Enter choice number (1 - %zu; 0 to exit page): ", num_choices);
+                                        char buffer[32];
+                                        fgets(buffer, sizeof(buffer), stdin);
+                                        choice = strtoul(buffer, NULL, 0);
+                                }while(choice > num_choices);
+
+                                if(choice){
+                                        page_num = page.choice[choice-1].page_num;
+                                        option = 2;
+                                        continue;
+                                }
+                        }
+                }else{
+                        printf("Page %lu is empty.\n", page_num);
+                }
+
+                const char *const END_MENU[] = { "Exit now", "Enter a specific page number" };
+                option = performMenu(END_MENU, sizeof(END_MENU)/sizeof(*END_MENU)) - 1;
+        }while(option);
+
+        fclose(fp);
+        return 0;
+
+exit_page_read:
+        fclose(fp);
+        return 1;
 }
 
 static unsigned removeChoice(FILE *const fp, const unsigned long PAGE_NUM, struct fic_page *const selected_page, struct free_page **free_pages, unsigned long *total_pages){
