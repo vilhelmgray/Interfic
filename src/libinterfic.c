@@ -115,7 +115,7 @@ extern unsigned writeFicHeader(FILE *fp){
                 return 1;
         }
 
-        if(!fwrite(&VERSION, sizeof(VERSION), 1, fp)){
+        if(fputc(VERSION, fp) == EOF){
                 fprintf(stderr, "Unable to write Interfic file version.\n");
                 return 1;
         }
