@@ -1,0 +1,37 @@
+                                Interfic
+
+About
+-----
+
+Interfic reads and creates interactive fiction.
+
+FIC File Format
+---------------
+
+At the heart of Interfic is the FIC file format. Each FIC file consists
+of a header followed by a number of "page" entries. The header consists
+of the magic ASCII byte sequence ("INTERFIC") followed by a version
+byte; the header is 9 bytes in size.
+
+A page entry consists of 1024 bytes of text followed by 4 "choice"
+entries, each having a size of 259 bytes; a page entry is 2060 bytes in
+size. If a null byte is the first byte of a page entry, the page entry
+is considered an "empty page" entry.
+
+A choice entry consists of 256 bytes of text followed by 3 bytes
+representing the number of the page entry to where the choice entry
+points. If a null byte is the first byte of a choice entry, the choice
+entry is considered an "empty choice" entry.
+
+Licensing
+---------
+
+Interfic is free software released under version 3 of the GNU Affero
+General Public License.
+
+See the file COPYING for copying conditions.
+
+Contact
+-------
+
+William Breathitt Gray <vilhelm.gray@gmail.com>
