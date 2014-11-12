@@ -124,7 +124,7 @@ exit_header_write:
 }
 
 static unsigned createPage(FILE *const fp, const unsigned long PAGE_NUM, struct free_page **free_pages, unsigned long *total_pages){
-        printf("Enter page text (maximum text length of %zu characters): ", PAGE_SIZE);
+        printf("Enter page text (maximum text length of %zu characters): ", TEXT_SIZE);
         char page_text[TEXT_SIZE+1] = "";
         fgets(page_text, sizeof(page_text), stdin);
 
