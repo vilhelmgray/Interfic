@@ -124,9 +124,9 @@ extern unsigned writeFicHeader(FILE *fp){
         return 0;
 }
 
-extern unsigned writePage(FILE *const fp, const unsigned long PAGE_NUM, const struct fic_page *const NEW_PAGE, struct free_page **const free_pages, unsigned long *const total_pages){
-        if(fseek(fp, HEADER_SIZE + PAGE_NUM*PAGE_SIZE, SEEK_SET)){
-                fprintf(stderr, "Error seeking to page %lu.\n", PAGE_NUM);
+extern unsigned writePage(FILE *const fp, const struct fic_page *const NEW_PAGE, struct free_page **const free_pages, unsigned long *const total_pages){
+        if(fseek(fp, HEADER_SIZE + NEW_PAGE->num*PAGE_SIZE, SEEK_SET)){
+                fprintf(stderr, "Error seeking to page %lu.\n", NEW_PAGE->num);
                 return 1;
         }
 
@@ -140,13 +140,13 @@ extern unsigned writePage(FILE *const fp, const unsigned long PAGE_NUM, const st
         }
 
         if(!fwrite(page_data, PAGE_SIZE, 1, fp)){
-                fprintf(stderr, "Error writing page %lu.\n", PAGE_NUM);
+                fprintf(stderr, "Error writing page %lu.\n", NEW_PAGE->num);
                 return 1;
         }
 
-        removeFreePage(PAGE_NUM, free_pages);
+        removeFreePage(NEW_PAGE->num, free_pages);
 
-        if(PAGE_NUM == *total_pages){
+        if(NEW_PAGE->num == *total_pages){
                 (*total_pages)++;
 
                 if(*total_pages <= MAX_PAGE_NUMBER){

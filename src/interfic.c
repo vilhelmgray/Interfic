@@ -26,16 +26,16 @@
 #include "free_pages.h"
 #include "libinterfic.h"
 
-static unsigned addChoice(unsigned long *const next_page_num, FILE *const fp, const unsigned long PAGE_NUM, struct fic_page *const selected_page, struct free_page **free_pages, unsigned long *total_pages);
+static unsigned addChoice(unsigned long *const next_page_num, FILE *const fp, struct fic_page *const selected_page, struct free_page **free_pages, unsigned long *total_pages);
 static unsigned createNewFic(const char *const fLoc);
 static unsigned createPage(FILE *const fp, const unsigned long PAGE_NUM, struct free_page **free_pages, unsigned long *total_pages);
 static unsigned editFic(const char *const fLoc);
-static unsigned editPage(unsigned long *const next_page_num, FILE *const fp, const unsigned long PAGE_NUM, struct fic_page *const selected_page, struct free_page **free_pages, unsigned long *total_pages);
+static unsigned editPage(unsigned long *const next_page_num, FILE *const fp, struct fic_page *const selected_page, struct free_page **free_pages, unsigned long *total_pages);
 static unsigned modifyPages(FILE *const fp);
 static unsigned performMenu(const char *const OPTIONS[], const size_t OPTIONS_SIZE);
 static void printPage(const struct fic_page *const SELECTED_PAGE);
 static unsigned readFic(const char *const fLoc);
-static unsigned removeChoice(FILE *const fp, const unsigned long PAGE_NUM, struct fic_page *const selected_page, struct free_page **free_pages, unsigned long *total_pages);
+static unsigned removeChoice(FILE *const fp, struct fic_page *const selected_page, struct free_page **free_pages, unsigned long *total_pages);
 static unsigned long selectPageNumber(const struct free_page *const FREE_PAGES);
 
 int main(void){
@@ -72,7 +72,7 @@ int main(void){
         return 0;
 }
 
-static unsigned addChoice(unsigned long *const next_page_num, FILE *const fp, const unsigned long PAGE_NUM, struct fic_page *const selected_page, struct free_page **free_pages, unsigned long *total_pages){
+static unsigned addChoice(unsigned long *const next_page_num, FILE *const fp, struct fic_page *const selected_page, struct free_page **free_pages, unsigned long *total_pages){
         size_t num_choices = 0;
         while(num_choices < MAX_NUM_CHOICES && selected_page->choice[num_choices].text[0]){
                 num_choices++;
@@ -90,7 +90,7 @@ static unsigned addChoice(unsigned long *const next_page_num, FILE *const fp, co
         memcpy(selected_page->choice[num_choices].text, choice_text, CHOICE_SIZE);
         selected_page->choice[num_choices].page_num = selectPageNumber(*free_pages);
 
-        if(writePage(fp, PAGE_NUM, selected_page, free_pages, total_pages)){
+        if(writePage(fp, selected_page, free_pages, total_pages)){
                 return 1;
         }
 
@@ -128,7 +128,7 @@ static unsigned createPage(FILE *const fp, const unsigned long PAGE_NUM, struct 
         char page_text[TEXT_SIZE+1] = "";
         fgets(page_text, sizeof(page_text), stdin);
 
-        struct fic_page new_page = {0};
+        struct fic_page new_page = { .num = PAGE_NUM };
         memcpy(new_page.text, page_text, TEXT_SIZE);
 
         if(PAGE_NUM > *total_pages){
@@ -138,7 +138,7 @@ static unsigned createPage(FILE *const fp, const unsigned long PAGE_NUM, struct 
                 }
         }
 
-        if(writePage(fp, PAGE_NUM, &new_page, free_pages, total_pages)){
+        if(writePage(fp, &new_page, free_pages, total_pages)){
                 return 1;
         }
 
@@ -169,7 +169,7 @@ exit_verify_fic_header:
         return 1;
 }
 
-static unsigned editPage(unsigned long *const next_page_num, FILE *const fp, const unsigned long PAGE_NUM, struct fic_page *const selected_page, struct free_page **free_pages, unsigned long *total_pages){
+static unsigned editPage(unsigned long *const next_page_num, FILE *const fp, struct fic_page *const selected_page, struct free_page **free_pages, unsigned long *total_pages){
         unsigned option = 1;
         if(selected_page->text[0]){
                 printPage(selected_page);
@@ -187,12 +187,12 @@ static unsigned editPage(unsigned long *const next_page_num, FILE *const fp, con
                         }
                         break;
                 case 2:
-                        if(addChoice(next_page_num, fp, PAGE_NUM, selected_page, free_pages, total_pages)){
+                        if(addChoice(next_page_num, fp, selected_page, free_pages, total_pages)){
                                 return 1;
                         }
                         break;
                 case 3:
-                        if(removeChoice(fp, PAGE_NUM, selected_page, free_pages, total_pages)){
+                        if(removeChoice(fp, selected_page, free_pages, total_pages)){
                                 return 1;
                         }
                         break;
@@ -230,7 +230,7 @@ static unsigned modifyPages(FILE *const fp){
                 }
 
                 unsigned long next_page_num = page_num;
-                if(editPage(&next_page_num, fp, page_num, &selected_page, &free_pages, &total_pages)){
+                if(editPage(&next_page_num, fp, &selected_page, &free_pages, &total_pages)){
                         goto exit_page_modification;
                 }
 
@@ -352,7 +352,7 @@ exit_verify_fic_header:
         return 1;
 }
 
-static unsigned removeChoice(FILE *const fp, const unsigned long PAGE_NUM, struct fic_page *const selected_page, struct free_page **free_pages, unsigned long *total_pages){
+static unsigned removeChoice(FILE *const fp, struct fic_page *const selected_page, struct free_page **free_pages, unsigned long *total_pages){
         size_t num_choices = 0;
         while(num_choices < MAX_NUM_CHOICES && selected_page->choice[num_choices].text[0]){
                 num_choices++;
@@ -376,7 +376,7 @@ static unsigned removeChoice(FILE *const fp, const unsigned long PAGE_NUM, struc
         }
         selected_page->choice[num_choices-1].text[0] = 0;
 
-        if(writePage(fp, PAGE_NUM, selected_page, free_pages, total_pages)){
+        if(writePage(fp, selected_page, free_pages, total_pages)){
                 return 1;
         }
 
