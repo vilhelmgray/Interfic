@@ -152,6 +152,10 @@ static unsigned editFic(const char *const fLoc){
                 return 1;
         }
 
+        if(verifyFicHeader(fp)){
+                goto exit_verify_fic_header;
+        }
+
         if(modifyPages(fp)){
                 goto exit_modify_pages;
         }
@@ -161,6 +165,7 @@ static unsigned editFic(const char *const fLoc){
 
 exit_modify_pages:
         fclose(fp);
+exit_verify_fic_header:
         return 1;
 }
 
@@ -286,6 +291,10 @@ static unsigned readFic(const char *const fLoc){
                 return 1;
         }
 
+        if(verifyFicHeader(fp)){
+                goto exit_verify_fic_header;
+        }
+
         unsigned option = 1;
         do{
                 static unsigned long page_num = 0;
@@ -339,6 +348,7 @@ static unsigned readFic(const char *const fLoc){
 
 exit_page_read:
         fclose(fp);
+exit_verify_fic_header:
         return 1;
 }
 

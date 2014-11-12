@@ -47,5 +47,6 @@ extern unsigned erasePage(FILE *const fp, const unsigned long PAGE_NUM, struct f
 extern unsigned readPage(FILE *const fp, const unsigned long PAGE_NUM, struct fic_page *read_page);
 extern unsigned writeFicHeader(FILE *fp);
 extern unsigned writePage(FILE *const fp, const unsigned long PAGE_NUM, const struct fic_page *const NEW_PAGE, struct free_page **const free_pages, unsigned long *const total_pages);
+extern unsigned verifyFicHeader(FILE *const fp);
 
 #endif

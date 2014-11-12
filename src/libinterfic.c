@@ -16,6 +16,7 @@
  * License along with Interfic.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
+#include <inttypes.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -153,6 +154,35 @@ extern unsigned writePage(FILE *const fp, const unsigned long PAGE_NUM, const st
                                 return 1;
                         }
                 }
+        }
+
+        return 0;
+}
+
+extern unsigned verifyFicHeader(FILE *const fp){
+        uint8_t file_magic[sizeof(MAGIC)];
+        if(!fread(file_magic, sizeof(file_magic), 1, fp)){
+                fprintf(stderr, "Unable to read magic number.\n");
+                return 1;
+        }
+
+        if(memcmp(file_magic, MAGIC, sizeof(MAGIC))){
+                printf("The magic number of the file does not match the expected Interfic magic number.\n");
+                return 1;
+        }
+
+        int retval = fgetc(fp);
+        if(retval == EOF){
+                fprintf(stderr, "Unable to read Interfic file version.\n");
+                return 1;
+        }
+        uint8_t file_version = retval;
+
+        if(file_version > VERSION){
+                printf("FIC file version is %" PRIu8 "; "
+                       "this version of Interfic does not support FIC file versions greater than %" PRIu8 ".",
+                       file_version, VERSION);
+                return 1;
         }
 
         return 0;
