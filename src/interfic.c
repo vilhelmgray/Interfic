@@ -270,18 +270,21 @@ static unsigned performMenu(const char *const OPTIONS[], const size_t OPTIONS_SI
 }
 
 static void printPage(const struct fic_page *const SELECTED_PAGE){
+        const char *const DIVIDER = "------------------------------------------------------------------------\n";
+        printf(DIVIDER "Page Number: %lu\n" DIVIDER, SELECTED_PAGE->num);
+
         char page_text[TEXT_SIZE+1] = "";
         memcpy(page_text, SELECTED_PAGE->text, TEXT_SIZE);
-        printf("Page text:\n%s\n\n", page_text);
+        printf(DIVIDER "%s\n" DIVIDER, page_text);
 
+        printf(DIVIDER);
         for(size_t i = 0; i < MAX_NUM_CHOICES && SELECTED_PAGE->choice[i].text[0]; i++){
                 char choice_text[CHOICE_SIZE+1] = "";
                 memcpy(choice_text, SELECTED_PAGE->choice[i].text, CHOICE_SIZE);
 
                 printf("\tChoice %zu: %s <Go to page %lu.>\n", i+1, choice_text, SELECTED_PAGE->choice[i].page_num);
         }
-
-        putchar('\n');
+        printf(DIVIDER);
 }
 
 static unsigned readFic(const char *const fLoc){
