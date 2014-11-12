@@ -177,12 +177,12 @@ static unsigned editPage(unsigned long *const next_page_num, FILE *const fp, str
                 const char *const EDIT_MENU[] = { "Create new page", "Add new choice", "Remove a choice", "Remove page", "Exit menu" };
                 option = performMenu(EDIT_MENU, sizeof(EDIT_MENU)/sizeof(*EDIT_MENU));
         }else{
-                printf("Page %lu is empty.\n", PAGE_NUM);
+                printf("Page %lu is empty.\n", selected_page->num);
         }
 
         switch(option){
                 case 1:
-                        if(createPage(fp, PAGE_NUM, free_pages, total_pages)){
+                        if(createPage(fp, selected_page->num, free_pages, total_pages)){
                                 return 1;
                         }
                         break;
@@ -197,7 +197,7 @@ static unsigned editPage(unsigned long *const next_page_num, FILE *const fp, str
                         }
                         break;
                 case 4:
-                        if(erasePage(fp, PAGE_NUM, free_pages)){
+                        if(erasePage(fp, selected_page->num, free_pages)){
                                 return 1;
                         }
                         break;
