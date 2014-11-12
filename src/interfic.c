@@ -222,9 +222,9 @@ static unsigned modifyPages(FILE *const fp){
                         page_num = selectPageNumber(free_pages);
                 }
 
-                struct fic_page selected_page = {0};
+                struct fic_page selected_page = { .num = page_num };
                 if(page_num < total_pages){
-                        if(readPage(fp, page_num, &selected_page)){
+                        if(readPage(fp, &selected_page)){
                                 goto exit_page_selection;
                         }
                 }
@@ -307,8 +307,8 @@ static unsigned readFic(const char *const fLoc){
                         }while(page_num > MAX_PAGE_NUMBER);
                 }
 
-                struct fic_page page = {0};
-                if(readPage(fp, page_num, &page)){
+                struct fic_page page = { .num = page_num };
+                if(readPage(fp, &page)){
                         goto exit_page_read;
                 }
 

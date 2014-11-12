@@ -87,15 +87,15 @@ extern unsigned erasePage(FILE *const fp, const unsigned long PAGE_NUM, struct f
         return 0;
 }
 
-extern unsigned readPage(FILE *const fp, const unsigned long PAGE_NUM, struct fic_page *read_page){
-        if(fseek(fp, HEADER_SIZE + PAGE_NUM*PAGE_SIZE, SEEK_SET)){
-                fprintf(stderr, "Error seeking to page %lu.\n", PAGE_NUM);
+extern unsigned readPage(FILE *const fp, struct fic_page *read_page){
+        if(fseek(fp, HEADER_SIZE + read_page->num*PAGE_SIZE, SEEK_SET)){
+                fprintf(stderr, "Error seeking to page %lu.\n", read_page->num);
                 return 1;
         }
 
         uint8_t page_data[PAGE_SIZE];
         if(!fread(page_data, PAGE_SIZE, 1, fp)){
-                fprintf(stderr, "Error reading page %lu.\n", PAGE_NUM);
+                fprintf(stderr, "Error reading page %lu.\n", read_page->num);
                 return 1;
         }
 
