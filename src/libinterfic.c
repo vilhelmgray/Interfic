@@ -82,7 +82,9 @@ extern unsigned erasePage(FILE *const fp, const unsigned long PAGE_NUM, struct f
                 return 1;
         }
 
-        insertFreePage(free_pages, PAGE_NUM);
+        if(insertFreePage(free_pages, PAGE_NUM)){
+                return 1;
+        }
 
         return 0;
 }
