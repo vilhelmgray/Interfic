@@ -211,8 +211,9 @@ static unsigned editPage(unsigned long *const next_page_num, FILE *const fp, str
 static unsigned modifyPages(FILE *const fp){
         struct free_page *free_pages;
         unsigned long total_pages;
-        if(discoverFreePages(&free_pages, &total_pages, fp)){
-                goto exit_free_pages_discovery;
+        if(loadFicFile(fp, &total_pages, &free_pages)){
+                fprintf(stderr, "Unable to load FIC file\n");
+                goto exit_load_fic_file;
         }
 
         unsigned option = 3;
@@ -249,7 +250,7 @@ static unsigned modifyPages(FILE *const fp){
 exit_page_modification:
 exit_page_selection:
         forgetFreePages(free_pages);
-exit_free_pages_discovery:
+exit_load_fic_file:
         return 1;
 }
 
@@ -298,21 +299,32 @@ static unsigned readFic(const char *const fLoc){
                 goto exit_verify_fic_header;
         }
 
+        unsigned long total_pages;
+        if(loadFicFile(fp, &total_pages, NULL)){
+                fprintf(stderr, "Unable to load FIC file\n");
+                goto exit_load_fic_file;
+        }
+
+        if(!total_pages){
+                fprintf(stderr, "FIC file has no pages.\n");
+                goto exit_no_pages;
+        }
+
         unsigned option = 1;
         do{
-                static unsigned long page_num = 0;
+                static unsigned long next_page_num = 0;
+                struct fic_page page = { .num = next_page_num };
                 if(option == 1){
                         do{
-                                printf("Enter page number (0 - %lu): ", MAX_PAGE_NUMBER);
+                                printf("Enter page number (0 - %lu): ", total_pages - 1);
                                 char buffer[32];
                                 fgets(buffer, sizeof(buffer), stdin);
-                                page_num = strtoul(buffer, NULL, 0);
-                        }while(page_num > MAX_PAGE_NUMBER);
-                }
-
-                struct fic_page page = { .num = page_num };
-                if(readPage(fp, &page)){
-                        goto exit_page_read;
+                                page.num = strtoul(buffer, NULL, 0);
+                        }while(page.num >= total_pages);
+                }else if(page.num < total_pages){
+                        if(readPage(fp, &page)){
+                                goto exit_page_read;
+                        }
                 }
 
                 if(page.text[0]){
@@ -333,13 +345,13 @@ static unsigned readFic(const char *const fLoc){
                                 }while(choice > num_choices);
 
                                 if(choice){
-                                        page_num = page.choice[choice-1].page_num;
+                                        next_page_num = page.choice[choice-1].page_num;
                                         option = 2;
                                         continue;
                                 }
                         }
                 }else{
-                        printf("Page %lu is empty.\n", page_num);
+                        printf("Page %lu is empty.\n", page.num);
                 }
 
                 const char *const END_MENU[] = { "Exit now", "Enter a specific page number" };
@@ -350,8 +362,10 @@ static unsigned readFic(const char *const fLoc){
         return 0;
 
 exit_page_read:
-        fclose(fp);
+exit_no_pages:
+exit_load_fic_file:
 exit_verify_fic_header:
+        fclose(fp);
         return 1;
 }
 

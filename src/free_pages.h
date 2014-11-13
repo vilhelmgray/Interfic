@@ -19,14 +19,11 @@
 #ifndef FREE_PAGES_H
 #define FREE_PAGES_H
 
-#include <stdio.h>
-
 struct free_page{
         unsigned long page_num;
         struct free_page *next;
 };
 
-extern unsigned discoverFreePages(struct free_page **const free_pages, unsigned long *const total_pages, FILE *const fp);
 extern void forgetFreePages(struct free_page *free_pages);
 extern unsigned insertFreePage(struct free_page **head_page, const unsigned long PAGE_NUM);
 extern void removeFreePage(const unsigned long PAGE_NUM, struct free_page **head);

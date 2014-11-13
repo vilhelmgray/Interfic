@@ -89,6 +89,45 @@ extern unsigned erasePage(FILE *const fp, const unsigned long PAGE_NUM, struct f
         return 0;
 }
 
+extern unsigned loadFicFile(FILE *const fp, unsigned long *const total_pages, struct free_page **const free_pages){
+        if(fseek(fp, HEADER_SIZE, SEEK_SET)){
+                fprintf(stderr, "Error seeking to page 0.\n");
+                return 1;
+        }
+
+        unsigned isEOF = 0;
+        unsigned long page_num = 0;
+        struct free_page **next_free_page = free_pages;
+        do{
+                char page_data[PAGE_SIZE];
+                fread(page_data, sizeof(page_data), 1, fp);
+                if(feof(fp)){
+                        page_data[0] = '\0';
+                        isEOF = 1;
+                }else if(ferror(fp)){
+                        fprintf(stderr, "Error trying to read page %lu.\n", page_num);
+                        return 1;
+                }
+
+                if(free_pages && !page_data[0]){
+                        if(insertFreePage(next_free_page, page_num)){
+                                goto err_insert_free_page;
+                        }
+
+                        next_free_page = &((*next_free_page)->next);
+                }
+
+                page_num++;
+        }while(!isEOF && page_num <= MAX_PAGE_NUMBER);
+
+        *total_pages = (isEOF) ? page_num - 1 : page_num;
+        return 0;
+
+err_insert_free_page:
+        forgetFreePages(*free_pages);
+        return 1;
+}
+
 extern unsigned readPage(FILE *const fp, struct fic_page *read_page){
         if(fseek(fp, HEADER_SIZE + read_page->num*PAGE_SIZE, SEEK_SET)){
                 fprintf(stderr, "Error seeking to page %lu.\n", read_page->num);
