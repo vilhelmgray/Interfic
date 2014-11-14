@@ -321,7 +321,9 @@ static unsigned readFic(const char *const fLoc){
                                 fgets(buffer, sizeof(buffer), stdin);
                                 page.num = strtoul(buffer, NULL, 0);
                         }while(page.num >= total_pages);
-                }else if(page.num < total_pages){
+                }
+
+                if(page.num < total_pages){
                         if(readPage(fp, &page)){
                                 goto exit_page_read;
                         }
