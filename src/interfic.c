@@ -209,7 +209,7 @@ static unsigned editPage(unsigned long *const next_page_num, FILE *const fp, str
 }
 
 static unsigned modifyPages(FILE *const fp){
-        struct free_page *free_pages;
+        struct free_page *free_pages = NULL;
         unsigned long total_pages;
         if(loadFicFile(fp, &total_pages, &free_pages)){
                 fprintf(stderr, "Unable to load FIC file\n");
