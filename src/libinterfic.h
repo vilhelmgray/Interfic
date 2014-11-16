@@ -24,12 +24,12 @@
 
 #include "free_pages.h"
 
-#define HEADER_SIZE     9UL
+#define HEADER_SIZE     (size_t)9
 
-#define TEXT_SIZE       1024UL
-#define MAX_NUM_CHOICES 4U
-#define CHOICE_SIZE     256UL
-#define PAGE_NUM_SIZE   3UL
+#define TEXT_SIZE       (size_t)1024
+#define MAX_NUM_CHOICES (size_t)4
+#define CHOICE_SIZE     (size_t)256
+#define PAGE_NUM_SIZE   (size_t)3
 #define PAGE_SIZE       (TEXT_SIZE + MAX_NUM_CHOICES*(CHOICE_SIZE + PAGE_NUM_SIZE))
 extern const unsigned long MAX_PAGE_NUMBER;
 
