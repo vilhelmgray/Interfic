@@ -100,13 +100,14 @@ extern unsigned loadFicFile(FILE *const fp, unsigned long *const total_pages, st
         struct free_page **next_free_page = free_pages;
         do{
                 char page_data[PAGE_SIZE];
-                fread(page_data, sizeof(page_data), 1, fp);
-                if(feof(fp)){
-                        page_data[0] = '\0';
-                        isEOF = 1;
-                }else if(ferror(fp)){
-                        fprintf(stderr, "Error trying to read page %lu.\n", page_num);
-                        return 1;
+                if(!fread(page_data, sizeof(page_data), 1, fp)){
+                        if(feof(fp)){
+                                page_data[0] = '\0';
+                                isEOF = 1;
+                        }else if(ferror(fp)){
+                                fprintf(stderr, "Error trying to read page %lu.\n", page_num);
+                                return 1;
+                        }
                 }
 
                 if(free_pages && !page_data[0]){
