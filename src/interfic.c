@@ -44,7 +44,10 @@ int main(void){
 
         printf("Enter the file location: ");
         char fLoc[256];
-        fgets(fLoc, sizeof(fLoc), stdin);
+        if(!fgets(fLoc, sizeof(fLoc), stdin)){
+                fprintf(stderr, "Unable to get input from stdin.\n");
+                return 1;
+        }
         size_t offset = 0;
         while(offset < sizeof(fLoc) && !iscntrl(fLoc[offset])){
                 offset++;
@@ -85,7 +88,10 @@ static unsigned addChoice(unsigned long *const next_page_num, FILE *const fp, st
 
         printf("Enter Choice %zu text (maximum text length of %zu characters): ", num_choices+1, CHOICE_SIZE);
         char choice_text[CHOICE_SIZE+1] = "";
-        fgets(choice_text, sizeof(choice_text), stdin);
+        if(!fgets(choice_text, sizeof(choice_text), stdin)){
+                fprintf(stderr, "Unable to get input from stdin.\n");
+                return 1;
+        }
 
         memcpy(selected_page->choice[num_choices].text, choice_text, CHOICE_SIZE);
         selected_page->choice[num_choices].page_num = selectPageNumber(*free_pages);
@@ -126,7 +132,10 @@ exit_header_write:
 static unsigned createPage(FILE *const fp, const unsigned long PAGE_NUM, struct free_page **free_pages, unsigned long *total_pages){
         printf("Enter page text (maximum text length of %zu characters): ", TEXT_SIZE);
         char page_text[TEXT_SIZE+1] = "";
-        fgets(page_text, sizeof(page_text), stdin);
+        if(!fgets(page_text, sizeof(page_text), stdin)){
+                fprintf(stderr, "Unable to get input from stdin.\n");
+                return 1;
+        }
 
         struct fic_page new_page = { .num = PAGE_NUM };
         memcpy(new_page.text, page_text, TEXT_SIZE);
@@ -263,7 +272,10 @@ static unsigned performMenu(const char *const OPTIONS[], const size_t OPTIONS_SI
                 }
                 printf("> ");
                 char buffer[32];
-                fgets(buffer, sizeof(buffer), stdin);
+                if(!fgets(buffer, sizeof(buffer), stdin)){
+                        fprintf(stderr, "Unable to get input from stdin.\n");
+                        return 1;
+                }
                 option = strtoul(buffer, NULL, 0);
         }while(!option || option > OPTIONS_SIZE);
 
@@ -318,7 +330,10 @@ static unsigned readFic(const char *const fLoc){
                         do{
                                 printf("Enter page number (0 - %lu): ", total_pages - 1);
                                 char buffer[32];
-                                fgets(buffer, sizeof(buffer), stdin);
+                                if(!fgets(buffer, sizeof(buffer), stdin)){
+                                        fprintf(stderr, "Unable to get input from stdin.\n");
+                                        goto exit_stdin_err;
+                                }
                                 page.num = strtoul(buffer, NULL, 0);
                         }while(page.num >= total_pages);
                 }
@@ -342,7 +357,10 @@ static unsigned readFic(const char *const fLoc){
                                 do{
                                         printf("Enter choice number (1 - %zu; 0 to exit page): ", num_choices);
                                         char buffer[32];
-                                        fgets(buffer, sizeof(buffer), stdin);
+                                        if(!fgets(buffer, sizeof(buffer), stdin)){
+                                                fprintf(stderr, "Unable to get input from stdin.\n");
+                                                goto exit_stdin_err;
+                                        }
                                         choice = strtoul(buffer, NULL, 0);
                                 }while(choice > num_choices);
 
@@ -364,6 +382,7 @@ static unsigned readFic(const char *const fLoc){
         return 0;
 
 exit_page_read:
+exit_stdin_err:
 exit_no_pages:
 exit_load_fic_file:
 exit_verify_fic_header:
@@ -386,7 +405,10 @@ static unsigned removeChoice(FILE *const fp, struct fic_page *const selected_pag
         do{
                 printf("Enter the number of the choice you want removed (1 - %zu): ", num_choices);
                 char buffer[32];
-                fgets(buffer, sizeof(buffer), stdin);
+                if(!fgets(buffer, sizeof(buffer), stdin)){
+                        fprintf(stderr, "Unable to get input from stdin.\n");
+                        return 1;
+                }
                 choice = strtoul(buffer, NULL, 0);
         }while(!choice || choice > num_choices);
 
@@ -421,7 +443,10 @@ static unsigned long selectPageNumber(const struct free_page *const FREE_PAGES){
                         do{
                                 printf("Enter page number (0 - %lu): ", MAX_PAGE_NUMBER);
                                 char buffer[32];
-                                fgets(buffer, sizeof(buffer), stdin);
+                                if(!fgets(buffer, sizeof(buffer), stdin)){
+                                        fprintf(stderr, "Unable to get input from stdin.\n");
+                                        return 0;
+                                }
                                 page_num = strtoul(buffer, NULL, 0);
                         }while(page_num > MAX_PAGE_NUMBER);
                         break;
