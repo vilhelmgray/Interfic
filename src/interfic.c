@@ -85,7 +85,7 @@ static unsigned addChoice(unsigned long *const next_page_num, FILE *const fp, st
                 return 0;
         }
 
-        printf("Enter Choice %zu text (maximum text length of %zu characters): ", num_choices+1, CHOICE_SIZE);
+        printf("Enter Choice %zu text (maximum text length of %d characters): ", num_choices+1, CHOICE_SIZE);
         char choice_text[CHOICE_SIZE+1] = "";
         if(!fgets(choice_text, sizeof(choice_text), stdin)){
                 fprintf(stderr, "Unable to get input from stdin.\n");
@@ -129,7 +129,7 @@ exit_header_write:
 }
 
 static unsigned createPage(FILE *const fp, const unsigned long PAGE_NUM, struct free_page **free_pages, unsigned long *total_pages){
-        printf("Enter page text (maximum text length of %zu characters): ", TEXT_SIZE);
+        printf("Enter page text (maximum text length of %d characters): ", TEXT_SIZE);
         char page_text[TEXT_SIZE+1] = "";
         if(!fgets(page_text, sizeof(page_text), stdin)){
                 fprintf(stderr, "Unable to get input from stdin.\n");
