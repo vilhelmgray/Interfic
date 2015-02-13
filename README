@@ -14,11 +14,11 @@ of the magic ASCII byte sequence ("INTERFIC") followed by a version
 byte; the header is 9 bytes in size.
 
 A page entry consists of 1024 bytes of text followed by 4 "choice"
-entries, each having a size of 259 bytes; a page entry is 2060 bytes in
+entries, each having a size of 131 bytes; a page entry is 1548 bytes in
 size. If a null byte is the first byte of a page entry, the page entry
 is considered an "empty page" entry.
 
-A choice entry consists of 256 bytes of text followed by 3 bytes
+A choice entry consists of 128 bytes of text followed by 3 bytes
 representing the number of the page entry to where the choice entry
 points. If a null byte is the first byte of a choice entry, the choice
 entry is considered an "empty choice" entry.

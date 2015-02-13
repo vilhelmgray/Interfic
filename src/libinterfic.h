@@ -26,7 +26,7 @@
 
 #define TEXT_SIZE       1024
 #define MAX_NUM_CHOICES 4
-#define CHOICE_SIZE     256
+#define CHOICE_SIZE     128
 #define PAGE_NUM_SIZE   3
 #define PAGE_SIZE       (TEXT_SIZE + MAX_NUM_CHOICES*(CHOICE_SIZE + PAGE_NUM_SIZE))
 extern const unsigned long MAX_PAGE_NUMBER;
