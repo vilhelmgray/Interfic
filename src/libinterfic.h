@@ -24,8 +24,6 @@
 
 #include "free_pages.h"
 
-#define HEADER_SIZE     9
-
 #define TEXT_SIZE       1024
 #define MAX_NUM_CHOICES 4
 #define CHOICE_SIZE     256

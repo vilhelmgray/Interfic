@@ -28,6 +28,7 @@
 
 static const uint8_t MAGIC[8] = { 0x49, 0x4E, 0x54, 0x45, 0x52, 0x46, 0x49, 0x43 };
 static const uint8_t VERSION = 0;
+#define HEADER_SIZE     (sizeof(MAGIC) + sizeof(VERSION))
 
 #define MAX_OFFSET      ((1UL<<31) - 1)
 #define MAX_FIC_SIZE    (MAX_OFFSET + PAGE_SIZE - HEADER_SIZE)
